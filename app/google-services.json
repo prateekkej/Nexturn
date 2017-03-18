@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "856626010405",
+    "project_id": "firebase-nexturn"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:856626010405:android:cd23b47ac5453334",
+        "android_client_info": {
+          "package_name": "com.nexturn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "856626010405-m4bpt4tvf8vrjouk1lctdb1aou3usa49.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexturn",
+            "certificate_hash": "5009efb2eb2c1b2b724dd9eacfb380897cc4a575"
+          }
+        },
+        {
+          "client_id": "856626010405-u3bsqabqvh8kbtildjdn0u3dp6scegks.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAO4KZCSN-RkstKSPiBWccJnEGvgr_u3I0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Nexturn</string>
+    <string name="email">E-Mail</string>>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="forgot">Forgot Password?</string>
+    <string name="dob">Date of Birth</string>
+    <string name="phone">Mobile</string>
+
+</resources>
