@@ -1,4 +1,4 @@
-package com.nexturn;
+package com.nexturn.ModifiedViews;
 
 import android.content.Context;
 import android.graphics.Typeface;
