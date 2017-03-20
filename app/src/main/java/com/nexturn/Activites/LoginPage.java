@@ -25,14 +25,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.firebase.auth.FirebaseAuth;
 import com.nexturn.R;
 import com.nexturn.ModifiedViews.ourTextView;
 
 public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener{
 Button login;
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     GoogleSignInOptions gso;
     GoogleApiClient googleApiClient;
     SignInButton googleButton;
@@ -49,7 +46,6 @@ Button login;
         super.onCreate(savedInstanceState);
         callbackManager = CallbackManager.Factory.create();
         setContentView(R.layout.activity_login_page);
-        mAuth = FirebaseAuth.getInstance();
         login=(Button)findViewById(R.id.login_button);
         FacebookSdk.sdkInitialize(getApplicationContext());
         callbackManager = CallbackManager.Factory.create();
@@ -109,7 +105,6 @@ Button login;
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
 if(result.isSuccess())
 {GoogleSignInAccount acct = result.getSignInAccount();
-    firebaseAuthWithGoogle(acct);
 
     Toast.makeText(this,acct.getDisplayName(),Toast.LENGTH_LONG).show();
     Toast.makeText(this,acct.getEmail(),Toast.LENGTH_LONG).show();
