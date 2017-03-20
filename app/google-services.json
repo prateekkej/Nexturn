@@ -1,27 +1,27 @@
 {
   "project_info": {
-    "project_number": "1086292165662",
-    "firebase_url": "https://nexturn-de212.firebaseio.com",
-    "project_id": "nexturn-de212",
-    "storage_bucket": "nexturn-de212.appspot.com"
+    "project_number": "377105012353",
+    "firebase_url": "https://nexturn-ae93f.firebaseio.com",
+    "project_id": "nexturn-ae93f",
+    "storage_bucket": "nexturn-ae93f.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1086292165662:android:65b61c71460d8095",
+        "mobilesdk_app_id": "1:377105012353:android:cd23b47ac5453334",
         "android_client_info": {
-          "package_name": "com.nexturn.android"
+          "package_name": "com.nexturn"
         }
       },
       "oauth_client": [
         {
-          "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
+          "client_id": "377105012353-2bic7v9hmurq2o758sn3j39ss1ed70l6.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAben-UYJMR_CN5jdG8z58RJ_1N_abQ2U4"
+          "current_key": "AIzaSyDSBY2xouxqAsj57G4lZIKOky2GjMt5JWA"
         }
       ],
       "services": {
@@ -31,50 +31,6 @@
         "appinvite_service": {
           "status": 1,
           "other_platform_oauth_client": []
-        },
-        "ads_service": {
-          "status": 2
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:1086292165662:android:cd23b47ac5453334",
-        "android_client_info": {
-          "package_name": "com.nexturn"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "1086292165662-dsg8su5afd9tu4db52o6c2snu71tuu1h.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.nexturn",
-            "certificate_hash": "34c37f42ad9b561f942a65d40fd2959fa98a972a"
-          }
-        },
-        {
-          "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAben-UYJMR_CN5jdG8z58RJ_1N_abQ2U4"
-        }
-      ],
-      "services": {
-        "analytics_service": {
-          "status": 1
-        },
-        "appinvite_service": {
-          "status": 2,
-          "other_platform_oauth_client": [
-            {
-              "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
         },
         "ads_service": {
           "status": 2
