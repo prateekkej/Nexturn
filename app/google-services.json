@@ -1,33 +1,27 @@
 {
   "project_info": {
-    "project_number": "856626010405",
-    "project_id": "firebase-nexturn"
+    "project_number": "1086292165662",
+    "firebase_url": "https://nexturn-de212.firebaseio.com",
+    "project_id": "nexturn-de212",
+    "storage_bucket": "nexturn-de212.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:856626010405:android:cd23b47ac5453334",
+        "mobilesdk_app_id": "1:1086292165662:android:65b61c71460d8095",
         "android_client_info": {
-          "package_name": "com.nexturn"
+          "package_name": "com.nexturn.android"
         }
       },
       "oauth_client": [
         {
-          "client_id": "856626010405-m4bpt4tvf8vrjouk1lctdb1aou3usa49.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.nexturn",
-            "certificate_hash": "5009efb2eb2c1b2b724dd9eacfb380897cc4a575"
-          }
-        },
-        {
-          "client_id": "856626010405-u3bsqabqvh8kbtildjdn0u3dp6scegks.apps.googleusercontent.com",
+          "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAO4KZCSN-RkstKSPiBWccJnEGvgr_u3I0"
+          "current_key": "AIzaSyAben-UYJMR_CN5jdG8z58RJ_1N_abQ2U4"
         }
       ],
       "services": {
@@ -39,7 +33,51 @@
           "other_platform_oauth_client": []
         },
         "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086292165662:android:cd23b47ac5453334",
+        "android_client_info": {
+          "package_name": "com.nexturn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1086292165662-dsg8su5afd9tu4db52o6c2snu71tuu1h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexturn",
+            "certificate_hash": "34c37f42ad9b561f942a65d40fd2959fa98a972a"
+          }
+        },
+        {
+          "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAben-UYJMR_CN5jdG8z58RJ_1N_abQ2U4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
           "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1086292165662-pc0935b19e2tl6bqm9uf920n6kjjo7dq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
         }
       }
     }
