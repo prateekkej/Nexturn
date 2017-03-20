@@ -1,27 +1,35 @@
 {
   "project_info": {
-    "project_number": "377105012353",
-    "firebase_url": "https://nexturn-ae93f.firebaseio.com",
-    "project_id": "nexturn-ae93f",
-    "storage_bucket": "nexturn-ae93f.appspot.com"
+    "project_number": "132673078616",
+    "firebase_url": "https://nexturn-70823.firebaseio.com",
+    "project_id": "nexturn-70823",
+    "storage_bucket": "nexturn-70823.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:377105012353:android:cd23b47ac5453334",
+        "mobilesdk_app_id": "1:132673078616:android:cd23b47ac5453334",
         "android_client_info": {
           "package_name": "com.nexturn"
         }
       },
       "oauth_client": [
         {
-          "client_id": "377105012353-2bic7v9hmurq2o758sn3j39ss1ed70l6.apps.googleusercontent.com",
+          "client_id": "132673078616-f9du2gvf3v0osjmjnb0uq6s4k34mrkod.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexturn",
+            "certificate_hash": "5009efb2eb2c1b2b724dd9eacfb380897cc4a575"
+          }
+        },
+        {
+          "client_id": "132673078616-e5bhqpi2h8dl5fpd4b7amsrpfcuvp659.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDSBY2xouxqAsj57G4lZIKOky2GjMt5JWA"
+          "current_key": "AIzaSyDOywR3j_HAwv0SKkWel3-1Bm9rlvT0POA"
         }
       ],
       "services": {
@@ -29,8 +37,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132673078616-e5bhqpi2h8dl5fpd4b7amsrpfcuvp659.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2

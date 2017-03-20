@@ -45,7 +45,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:text="@string/fname"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <EditText
@@ -73,7 +73,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:text="@string/lname"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <EditText
@@ -101,7 +101,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="@string/gender"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <RadioGroup
@@ -149,7 +149,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:text="@string/dob"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <RelativeLayout
@@ -191,7 +191,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:text="@string/phone"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <EditText
@@ -219,7 +219,7 @@
                     android:layout_gravity="center_vertical"
                     android:layout_weight="1"
                     android:text="@string/pata"
-                    android:textColor="@color/common_google_signin_btn_text_dark_focused"
+                    android:textColor="@color/cardview_dark_background"
                     android:textSize="18sp" />
 
                 <Spinner

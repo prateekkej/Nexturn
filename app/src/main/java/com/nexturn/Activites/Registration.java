@@ -28,7 +28,7 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.nexturn.Manifest;
+import com.google.firebase.auth.FirebaseAuth;
 import com.nexturn.ModifiedViews.DatePickerFrag;
 import com.nexturn.R;
 
@@ -40,10 +40,12 @@ public class Registration extends AppCompatActivity {
     Spinner state_list;
     ImageView userimage;
     PopupMenu pop;
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        firebaseAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.registration);
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERM);
