@@ -19,9 +19,11 @@ import android.support.v4.widget.PopupMenuCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
+import android.text.method.PasswordTransformationMethod;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -38,8 +40,10 @@ public class Registration extends AppCompatActivity {
     final int STORAGE_PERM = 1;
     final int LOCATION_PERM = 2;
     Spinner state_list;
+    EditText password;
     ImageView userimage;
     PopupMenu pop;
+    boolean pass_visible = false;
     private FirebaseAuth firebaseAuth;
 
     @Override
@@ -55,6 +59,7 @@ public class Registration extends AppCompatActivity {
             Location me = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             Toast.makeText(this, me.toString(), Toast.LENGTH_SHORT).show();
         }
+        password = (EditText) findViewById(R.id.pass);
         state_list = (Spinner) findViewById(R.id.state_list);
         state_list.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -73,6 +78,15 @@ public class Registration extends AppCompatActivity {
         df.show(getSupportFragmentManager(), "datepicker");
     }
 
+    public void passs(View v) {
+        if (pass_visible == false) {
+            password.setTransformationMethod(null);
+            pass_visible = true;
+        } else {
+            password.setTransformationMethod(new PasswordTransformationMethod());
+            pass_visible = false;
+        }
+    }
     public void setUserImage(View v) {
         pop = new PopupMenu(this, v);
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {

@@ -11,229 +11,327 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.nexturn.Activites.Registration">
 
-    <android.support.v7.widget.CardView
-        android:id="@+id/card_reg"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="false"
-        android:layout_below="@+id/userImage"
-        android:layout_marginTop="20dp"
-        app:cardElevation="2dp">
+        android:layout_height="match_parent"
+        android:layout_below="@+id/userImage">
 
-        <TableLayout
-            android:id="@+id/tableLayout"
+        <android.support.v7.widget.CardView
+            android:id="@+id/card_reg"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_margin="20dp"
-            android:baselineAligned="false">
+            android:layout_alignParentTop="false"
+            android:layout_below="@+id/userImage"
+            android:layout_marginTop="20dp"
+            app:cardElevation="3dp">
 
-            <TableRow
+            <TableLayout
+                android:id="@+id/tableLayout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentTop="true"
+                android:layout_margin="20dp"
+                android:baselineAligned="false">
 
-                <view
-                    android:id="@+id/fname"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_alignParentTop="true"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="@string/fname"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
-
-                <EditText
-                    android:id="@+id/editText3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="textPersonName" />
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
-
-                <view
-                    android:id="@+id/lname"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_below="@+id/fname"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="@string/lname"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
-
-                <EditText
-                    android:id="@+id/editText4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="textPersonName" />
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp"
-                android:orientation="vertical">
-
-                <view
-                    android:id="@+id/gender"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:text="@string/gender"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
-
-                <RadioGroup
+                <TableRow
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:orientation="horizontal">
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
 
-                    <RadioButton
-                        android:id="@+id/male"
+                    <view
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:text="@string/fname"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/fname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="textPersonName" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
+
+                    <view
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_below="@+id/fname"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:text="@string/lname"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/lname"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="textPersonName" />
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
+
+                    <view
+                        android:id="@+id/view2"
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="Email-ID"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/email_id"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Male" />
+                        android:ems="10"
+                        android:inputType="textEmailAddress"
+                        android:singleLine="true" />
+                </TableRow>
 
-                    <RadioButton
-                        android:id="@+id/female"
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="vertical">
+
+                    <view
+                        android:id="@+id/gender"
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="@string/gender"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <RadioGroup
+                        android:id="@+id/gendertick"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
+
+                        <RadioButton
+                            android:id="@+id/male"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Male" />
+
+                        <RadioButton
+                            android:id="@+id/female"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Female" />
+
+                        <RadioButton
+                            android:id="@+id/others"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Others" />
+                    </RadioGroup>
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
+
+                    <view
+                        android:id="@+id/dob"
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentStart="false"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="@string/dob"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1">
+
+                        <EditText
+                            android:id="@+id/dobenter"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="center_vertical"
+                            android:ems="10"
+                            android:inputType="date"
+                            android:textSize="18sp" />
+
+                        <ImageView
+                            android:id="@+id/imageView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:onClick="setState_list"
+                            app:srcCompat="@android:drawable/ic_menu_my_calendar" />
+                    </LinearLayout>
+
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
+
+                    <view
+                        android:id="@+id/mobile"
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:text="@string/phone"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:inputType="number" />
+                </TableRow>
+
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
+
+                    <view
+                        android:id="@+id/view"
+                        class="com.nexturn.ModifiedViews.ourTextView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Female" />
+                        android:text="Aadhar ID"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp"
+                        android:textStyle="normal|bold" />
 
-                    <RadioButton
-                        android:id="@+id/others"
+                    <EditText
+                        android:id="@+id/aadhar"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Others" />
-                </RadioGroup>
-            </TableRow>
+                        android:ems="10"
+                        android:inputType="number" />
+                </TableRow>
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
+                <TableRow
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginBottom="10dp">
 
-                <view
-                    android:id="@+id/dob"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_below="@+id/fname"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="@string/dob"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
+                    <view
+                        android:id="@+id/loc"
+                        class="com.nexturn.ModifiedViews.ourTextView"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentStart="false"
+                        android:layout_weight="1"
+                        android:text="@string/pata"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
 
-                <RelativeLayout
+                    <Spinner
+                        android:id="@+id/state_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:animateLayoutChanges="false"
+                        android:entries="@array/indian_states"
+                        android:gravity="center_vertical" />
+
+                </TableRow>
+
+                <TableRow
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1">
 
-                    <EditText
-                        android:id="@+id/dobenter"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="center_vertical"
-                        android:ems="10"
-                        android:inputType="date"
-                        android:textSize="18sp" />
-
-                    <ImageView
-                        android:id="@+id/imageView"
+                    <view
+                        android:id="@+id/view3"
+                        class="com.nexturn.ModifiedViews.ourTextView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_toRightOf="@+id/dobenter"
                         android:layout_weight="1"
-                        android:onClick="setState_list"
-                        app:srcCompat="@android:drawable/ic_menu_my_calendar" />
-                </RelativeLayout>
+                        android:gravity="center_vertical"
+                        android:text="Password"
+                        android:textColor="@color/cardview_dark_background"
+                        android:textSize="18sp" />
 
-            </TableRow>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
+                        <EditText
+                            android:id="@+id/pass"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:ems="10"
+                            android:inputType="textPassword" />
 
-                <view
-                    android:id="@+id/mobile"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="@string/phone"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
+                        <ImageView
+                            android:id="@+id/passchange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:onClick="passs"
+                            app:srcCompat="@drawable/ic_lock_outline_black_48dp" />
+                    </LinearLayout>
 
-                <EditText
-                    android:id="@+id/editText6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="number" />
-            </TableRow>
+                </TableRow>
 
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginBottom="10dp">
-
-                <view
-                    android:id="@+id/loc"
-                    class="com.nexturn.ModifiedViews.ourTextView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_below="@+id/fname"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1"
-                    android:text="@string/pata"
-                    android:textColor="@color/cardview_dark_background"
-                    android:textSize="18sp" />
-
-                <Spinner
-                    android:id="@+id/state_list"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:animateLayoutChanges="false"
-                    android:entries="@array/indian_states"
-                    android:gravity="center_vertical" />
-
-            </TableRow>
-        </TableLayout>
-    </android.support.v7.widget.CardView>
+            </TableLayout>
+        </android.support.v7.widget.CardView>
+    </ScrollView>
 
     <ImageView
         android:id="@+id/userImage"
@@ -241,6 +339,8 @@
         android:layout_height="100dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
         android:onClick="setUserImage"
         app:srcCompat="@android:drawable/sym_def_app_icon" />
 
