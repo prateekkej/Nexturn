@@ -1,8 +1,11 @@
 package com.nexturn.Activites;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -34,8 +37,14 @@ Button login;
     LoginButton fbButton;
 
     @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         callbackManager = CallbackManager.Factory.create();
         setContentView(R.layout.activity_login_page);
         login=(Button)findViewById(R.id.login_button);

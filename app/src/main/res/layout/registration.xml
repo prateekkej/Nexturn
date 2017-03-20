@@ -152,7 +152,7 @@
                     android:textColor="@color/common_google_signin_btn_text_dark_focused"
                     android:textSize="18sp" />
 
-                <TableRow
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="1">
@@ -163,16 +163,18 @@
                         android:layout_height="match_parent"
                         android:layout_gravity="center_vertical"
                         android:ems="10"
-                        android:inputType="date" />
+                        android:inputType="date"
+                        android:textSize="18sp" />
 
                     <ImageView
                         android:id="@+id/imageView"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:layout_toRightOf="@+id/dobenter"
                         android:layout_weight="1"
                         android:onClick="setState_list"
                         app:srcCompat="@android:drawable/ic_menu_my_calendar" />
-                </TableRow>
+                </RelativeLayout>
 
             </TableRow>
 
