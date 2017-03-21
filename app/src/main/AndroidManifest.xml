@@ -15,9 +15,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Activites.LoginPage"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
@@ -36,6 +34,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Activites.Profile" />
     </application>
 
 </manifest>

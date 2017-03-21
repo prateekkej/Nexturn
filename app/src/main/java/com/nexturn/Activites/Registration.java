@@ -1,5 +1,6 @@
 package com.nexturn.Activites;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -20,50 +21,83 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
 import android.text.method.PasswordTransformationMethod;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.nexturn.ModifiedViews.DatePickerFrag;
 import com.nexturn.R;
+import com.nexturn.User_object;
+
+import org.w3c.dom.Text;
 
 import java.security.Permission;
 
 public class Registration extends AppCompatActivity {
     final int STORAGE_PERM = 1;
     final int LOCATION_PERM = 2;
-    Spinner state_list;
-    EditText password;
-    ImageView userimage;
-    PopupMenu pop;
+    ProgressDialog pd;
     boolean pass_visible = false;
+    boolean valid_data;
+    private String fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, passstr, aadharstr, locationstr, uidstr;
+    private Spinner state_list;
+    private EditText fname, lname, aadhar, contact, email, location, password;
+    private ImageView userimage;
+    private PopupMenu pop;
+    private RadioButton gen;
+    private RadioGroup gender;
+    private TextView dob;
+    private User_object user_object;
     private FirebaseAuth firebaseAuth;
-
-    @Override
+    private DatabaseReference databaseReference;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        firebaseAuth = FirebaseAuth.getInstance();
         setContentView(R.layout.registration);
+        firebaseAuth = FirebaseAuth.getInstance();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        firebaseAuth.signOut();
+        databaseReference = FirebaseDatabase.getInstance().getReference("users_info");
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERM);
-
         } else {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             Location me = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
             Toast.makeText(this, me.toString(), Toast.LENGTH_SHORT).show();
         }
+        initialize_view();
+
+
+    }
+
+    public void initialize_view() {
+        fname = (EditText) findViewById(R.id.fname);
+        lname = (EditText) findViewById(R.id.lname);
+        dob = (TextView) findViewById(R.id.dobenter);
+        aadhar = (EditText) findViewById(R.id.aadhar);
+        email = (EditText) findViewById(R.id.email_id);
         password = (EditText) findViewById(R.id.pass);
+        contact = (EditText) findViewById(R.id.phone);
         state_list = (Spinner) findViewById(R.id.state_list);
         state_list.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                locationstr = adapterView.getItemAtPosition(i).toString();
                 Toast.makeText(getApplicationContext(), adapterView.getItemAtPosition(i).toString(), Toast.LENGTH_LONG).show();
             }
 
@@ -71,13 +105,12 @@ public class Registration extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
+        gender = (RadioGroup) findViewById(R.id.gendertick);
     }
-
     public void setState_list(View v) {
         DatePickerFrag df = new DatePickerFrag();
         df.show(getSupportFragmentManager(), "datepicker");
     }
-
     public void passs(View v) {
         if (pass_visible == false) {
             password.setTransformationMethod(null);
@@ -108,8 +141,6 @@ public class Registration extends AppCompatActivity {
         }
 
     }
-
-    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
@@ -160,8 +191,6 @@ public class Registration extends AppCompatActivity {
                 // permissions this app might request
         }
     }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK && data.getData() != null) {
@@ -182,4 +211,68 @@ public class Registration extends AppCompatActivity {
 
         }
     }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.sign_up:
+                createUserObject();
+                break;
+        }
+        return true;
+    }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.sign_up_button, menu);
+        return true;
+    }
+
+    public void createUserObject() {
+        fnamestr = fname.getText().toString().trim();
+        lnamestr = lname.getText().toString().trim();
+        dobstr = dob.getText().toString().trim();
+        gen = (RadioButton) findViewById(gender.getCheckedRadioButtonId());
+        genderstr = gen.getText().toString().trim();
+        aadharstr = aadhar.getText().toString().trim();
+        passstr = password.getText().toString().trim();
+        emailstr = email.getText().toString().trim();
+        mobilestr = contact.getText().toString().trim();
+        valid_data = check_for_empty();
+        if (valid_data) {
+            pd = new ProgressDialog(this);
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.setTitle("Registering User....");
+            pd.setMessage("Please wait \nWhile we get you registered...");
+            pd.show();
+            firebaseAuth.createUserWithEmailAndPassword(emailstr, passstr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                @Override
+                public void onComplete(@NonNull Task<AuthResult> task) {
+                    if (task.isSuccessful() && task.isComplete()) {
+                        uidstr = firebaseAuth.getCurrentUser().getUid();
+                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr);
+                        databaseReference.child(uidstr)
+                                .setValue(user_object);
+                        pd.dismiss();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Network Error", Toast.LENGTH_LONG).show();
+                    }
+
+                }
+            });
+        } else {
+
+            Toast.makeText(this, "Empty ,Enter Something ", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public boolean check_for_empty() {
+        if (fnamestr.isEmpty() || lnamestr.isEmpty() || emailstr.isEmpty() || aadharstr.isEmpty() || passstr.isEmpty() || mobilestr.isEmpty() || dobstr == "DD/MM/YYYY" || locationstr == "Select your State") {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+
+
 }

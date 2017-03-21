@@ -14,6 +14,10 @@
     <string name="pata">Location</string>
     <string name="gender">Gender</string>
 
+    <style name="drawer_open">Drawer opened</style>
+
+    <style name="drawer_close">Drawer closed</style>
+
     <string-array name="indian_states">
         <item>Select your State</item>>
         <item>Andaman and Nicobar Islands</item>
@@ -53,5 +57,12 @@
         <item>Uttar Pradesh</item>
         <item>West Bengal</item>
     </string-array>
+    <string name="title_activity_profile_page">ProfilePage</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
 
 </resources>

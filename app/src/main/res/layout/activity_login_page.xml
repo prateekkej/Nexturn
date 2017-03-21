@@ -65,7 +65,7 @@
                 tools:ignore="NestedWeights" />
 
             <EditText
-                android:id="@+id/editText"
+                android:id="@+id/login_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -90,7 +90,7 @@
                 android:textSize="22sp" />
 
             <EditText
-                android:id="@+id/editText2"
+                android:id="@+id/login_password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
@@ -119,17 +119,19 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="?attr/selectableItemBackground"
+            android:onClick="logmein"
             android:text="@string/login"
             android:textSize="20sp"
             android:textStyle="normal|bold" />
 
         <Button
-            android:id="@+id/button"
+            android:id="@+id/forgot_password"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_weight="2"
             android:background="?attr/selectableItemBackground"
+            android:onClick="forgotpass"
             android:padding="10dp"
             android:text="@string/forgot"
             android:textSize="18sp" />
@@ -180,6 +182,7 @@
         android:background="@color/colorPrimaryDark"
         android:elevation="0dp"
         android:gravity="bottom"
+        android:onClick="signup"
         android:padding="20dp">
 
         <view

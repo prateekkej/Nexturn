@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    class="android.support.v4.widget.DrawerLayout"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    tools:context="com.nexturn.Activites.Profile">
+
+    <FrameLayout
+        android:id="@+id/content_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <!-- The navigation drawer -->
+    <ListView
+        android:id="@+id/left_drawer"
+        android:layout_width="240dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/cardview_light_background"
+        android:choiceMode="singleChoice"
+        android:divider="?attr/dividerHorizontal"
+        android:dividerHeight="2dp">
+
+
+    </ListView>
+
+</view>
