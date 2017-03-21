@@ -15,6 +15,7 @@
         android:id="@+id/userimage_nav"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:onClick="uploadimage"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
         app:srcCompat="@android:drawable/sym_def_app_icon" />
 
@@ -23,13 +24,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="@dimen/nav_header_vertical_spacing"
-        android:text="dd"
+        android:text="Loading..."
         android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
 
     <com.nexturn.ModifiedViews.ourTextView
         android:id="@+id/email_nav"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="dd" />
+        android:text="abc@xyz.com" />
 
 </LinearLayout>

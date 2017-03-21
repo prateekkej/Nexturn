@@ -24,18 +24,21 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.nexturn.R;
 
 public class LoginPage extends AppCompatActivity {
-    Button login;
-    CallbackManager callbackManager;
-    LoginButton fbButton;
+    private Button login;
+    private CallbackManager callbackManager;
+    private LoginButton fbButton;
     private String emailstr, passstr;
     private EditText email, pass;
     private FirebaseAuth firebaseAuth;
-    @Override
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_page);
         fb();
         firebaseAuth = FirebaseAuth.getInstance();
+        if (firebaseAuth.getCurrentUser() != null) {
+            startActivity(new Intent(LoginPage.this, Profile.class));
+        }
         email = (EditText) findViewById(R.id.login_email);
         pass = (EditText) findViewById(R.id.login_password);
         login=(Button)findViewById(R.id.login_button);
@@ -43,7 +46,6 @@ public class LoginPage extends AppCompatActivity {
 
 
     }
-
     public void forgotpass(View v) {
         emailstr = email.getText().toString();
         if (emailstr.isEmpty()) {
@@ -61,7 +63,6 @@ public class LoginPage extends AppCompatActivity {
             });
         }
     }
-
     public void logmein(View v) {
         emailstr = email.getText().toString();
         passstr = pass.getText().toString();
@@ -82,18 +83,14 @@ public class LoginPage extends AppCompatActivity {
         }
     }
 
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
-
     public void signup(View v) {
         Intent im = new Intent(LoginPage.this, Registration.class);
         startActivity(im);
-        finish();
     }
-
     void fb() {
         callbackManager = CallbackManager.Factory.create();
         FacebookSdk.sdkInitialize(getApplicationContext());

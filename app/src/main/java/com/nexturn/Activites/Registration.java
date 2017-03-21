@@ -5,11 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -36,26 +38,34 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.nexturn.ModifiedViews.DatePickerFrag;
 import com.nexturn.R;
 import com.nexturn.User_object;
 
 import org.w3c.dom.Text;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.security.Permission;
 
 public class Registration extends AppCompatActivity {
     final int STORAGE_PERM = 1;
     final int LOCATION_PERM = 2;
-    ProgressDialog pd;
     boolean pass_visible = false;
     boolean valid_data;
-    private String fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, passstr, aadharstr, locationstr, uidstr;
+    byte[] imgdecomp;
+    private ProgressDialog pd;
+    private String fnamestr, imgURL, lnamestr, emailstr, genderstr, dobstr, mobilestr, passstr, aadharstr, locationstr, uidstr;
     private Spinner state_list;
     private EditText fname, lname, aadhar, contact, email, location, password;
     private ImageView userimage;
@@ -66,11 +76,13 @@ public class Registration extends AppCompatActivity {
     private User_object user_object;
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
+    private StorageReference storageReference;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.registration);
         firebaseAuth = FirebaseAuth.getInstance();
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        storageReference = FirebaseStorage.getInstance().getReference();
         firebaseAuth.signOut();
         databaseReference = FirebaseDatabase.getInstance().getReference("users_info");
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -84,7 +96,6 @@ public class Registration extends AppCompatActivity {
 
 
     }
-
     public void initialize_view() {
         fname = (EditText) findViewById(R.id.fname);
         lname = (EditText) findViewById(R.id.lname);
@@ -134,6 +145,7 @@ public class Registration extends AppCompatActivity {
                     im.setType("image/*");
                     im.setAction(Intent.ACTION_GET_CONTENT);
                     startActivityForResult(im, 1);
+
                     return true;
                 }
             });
@@ -193,11 +205,13 @@ public class Registration extends AppCompatActivity {
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == RESULT_OK && data.getData() != null) {
-            Uri imgUri = data.getData();
-            Toast.makeText(getApplicationContext(), data.getData().toString(), Toast.LENGTH_LONG).show();
+        if (requestCode == 22 && resultCode == RESULT_OK) {
+            Bitmap img = (Bitmap) data.getExtras().get("data");
             userimage = (ImageView) findViewById(R.id.userImage);
-            Glide.with(getApplicationContext()).load(imgUri).asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            img.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+            imgdecomp = byteArrayOutputStream.toByteArray();
+            Glide.with(getApplicationContext()).load(byteArrayOutputStream.toByteArray()).asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
                 @Override
                 protected void setResource(Bitmap resource) {
                     RoundedBitmapDrawable circularBitmapDrawable =
@@ -210,8 +224,20 @@ public class Registration extends AppCompatActivity {
             });
 
         }
-    }
+        if (requestCode == 1 && resultCode == RESULT_OK && data.getData() != null) {
+            Uri imgUri = data.getData();
+            Intent cropIntent = new Intent("com.android.camera.action.CROP");
+            cropIntent.setDataAndType(imgUri, "image/*");
+            cropIntent.putExtra("crop", "true");
+            cropIntent.putExtra("aspectX", 1);
+            cropIntent.putExtra("aspectY", 1);
+            cropIntent.putExtra("outputX", 300);
+            cropIntent.putExtra("outputY", 300);
+            cropIntent.putExtra("return-data", true);
+            startActivityForResult(cropIntent, 22);
 
+        }
+    }
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sign_up:
@@ -220,12 +246,10 @@ public class Registration extends AppCompatActivity {
         }
         return true;
     }
-
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.sign_up_button, menu);
         return true;
     }
-
     public void createUserObject() {
         fnamestr = fname.getText().toString().trim();
         lnamestr = lname.getText().toString().trim();
@@ -248,22 +272,34 @@ public class Registration extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful() && task.isComplete()) {
                         uidstr = firebaseAuth.getCurrentUser().getUid();
-                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr);
+                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
                         databaseReference.child(uidstr)
                                 .setValue(user_object);
                         pd.dismiss();
                     } else {
                         Toast.makeText(getApplicationContext(), "Network Error", Toast.LENGTH_LONG).show();
                     }
+                    if (imgdecomp != null) {
+                        UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
+                        uploadTask.addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_LONG).show();
+                            }
+                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                            @Override
+                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                imgURL = taskSnapshot.getDownloadUrl().toString();
+                            }
+                        });
+                    }
 
                 }
             });
         } else {
-
             Toast.makeText(this, "Empty ,Enter Something ", Toast.LENGTH_LONG).show();
         }
     }
-
     public boolean check_for_empty() {
         if (fnamestr.isEmpty() || lnamestr.isEmpty() || emailstr.isEmpty() || aadharstr.isEmpty() || passstr.isEmpty() || mobilestr.isEmpty() || dobstr == "DD/MM/YYYY" || locationstr == "Select your State") {
             return false;
@@ -271,8 +307,4 @@ public class Registration extends AppCompatActivity {
             return true;
         }
     }
-
-
-
-
 }

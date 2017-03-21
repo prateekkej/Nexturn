@@ -6,12 +6,12 @@ package com.nexturn;
 
 public class User_object {
 
-    public String fname, lname, email, gender, dob, mobile, aadhar, location, uid;
+    public String fname, lname, email, gender, dob, mobile, aadhar, location, uid, imgURL;
 
     public User_object() {
     }
 
-    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1) {
+    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR) {
         fname = fname1;
         lname = lname1;
         uid = uid1;
@@ -20,6 +20,7 @@ public class User_object {
         dob = dob1;
         mobile = mobile1;
         aadhar = aadhar1;
+        imgURL = imgUR;
         location = location1;
     }
 
