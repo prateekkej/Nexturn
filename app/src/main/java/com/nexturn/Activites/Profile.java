@@ -183,7 +183,7 @@ public class Profile extends AppCompatActivity {
                 case 22:
                     Bitmap img = (Bitmap) data.getExtras().get("data");
                     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    img.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+                    img.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
                     imgdecomp = byteArrayOutputStream.toByteArray();
                     user_image = (ImageView) findViewById(R.id.userimage_nav);
                     Glide.with(getApplicationContext()).load(byteArrayOutputStream.toByteArray()).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {

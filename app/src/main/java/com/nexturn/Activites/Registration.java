@@ -209,7 +209,7 @@ public class Registration extends AppCompatActivity {
             Bitmap img = (Bitmap) data.getExtras().get("data");
             userimage = (ImageView) findViewById(R.id.userImage);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            img.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+            img.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             imgdecomp = byteArrayOutputStream.toByteArray();
             Glide.with(getApplicationContext()).load(byteArrayOutputStream.toByteArray()).asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
                 @Override
