@@ -15,6 +15,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Activites.LoginPage"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
 
         <meta-data
@@ -23,9 +24,11 @@
 
         <activity
             android:name=".Activites.Registration"
-            android:label="Register" />
+            android:label="Register"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Activites.SplashActivity"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,7 +36,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Activites.Profile" />
+        <activity
+            android:name=".Activites.Profile"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

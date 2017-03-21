@@ -31,6 +31,14 @@ public class LoginPage extends AppCompatActivity {
     private EditText email, pass;
     private FirebaseAuth firebaseAuth;
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (firebaseAuth.getCurrentUser() != null) {
+            startActivity(new Intent(LoginPage.this, Profile.class));
+        }
+    }
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_page);

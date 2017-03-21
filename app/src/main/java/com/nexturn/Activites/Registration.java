@@ -90,7 +90,6 @@ public class Registration extends AppCompatActivity {
         } else {
             LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             Location me = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Toast.makeText(this, me.toString(), Toast.LENGTH_SHORT).show();
         }
         initialize_view();
 
@@ -109,7 +108,6 @@ public class Registration extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 locationstr = adapterView.getItemAtPosition(i).toString();
-                Toast.makeText(getApplicationContext(), adapterView.getItemAtPosition(i).toString(), Toast.LENGTH_LONG).show();
             }
 
             @Override
@@ -272,28 +270,26 @@ public class Registration extends AppCompatActivity {
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful() && task.isComplete()) {
                         uidstr = firebaseAuth.getCurrentUser().getUid();
-                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
-                        databaseReference.child(uidstr)
-                                .setValue(user_object);
-                        pd.dismiss();
+                        if (imgdecomp != null) {
+                            UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
+                            uploadTask.addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_LONG).show();
+                                }
+                            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                    imgURL = taskSnapshot.getDownloadUrl().toString();
+                                    user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
+                                    databaseReference.child(uidstr).setValue(user_object);
+                                }
+                            });
+
+                        }
                     } else {
                         Toast.makeText(getApplicationContext(), "Network Error", Toast.LENGTH_LONG).show();
                     }
-                    if (imgdecomp != null) {
-                        UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
-                        uploadTask.addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_LONG).show();
-                            }
-                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                            @Override
-                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                imgURL = taskSnapshot.getDownloadUrl().toString();
-                            }
-                        });
-                    }
-
                 }
             });
         } else {

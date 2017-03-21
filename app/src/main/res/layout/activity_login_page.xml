@@ -156,7 +156,8 @@
             android:layout_marginRight="10dp"
             android:layout_weight="1"
             android:animateOnClick="true"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:visibility="gone" />
 
     </TableRow>
 
