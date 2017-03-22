@@ -3,6 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/uploadimage"
-        android:title="Upload Photo" />
+        android:id="@+id/exit"
+        android:showAsAction="ifRoom"
+        android:title="Exit"
+        app:showAsAction="always" />
 </menu>

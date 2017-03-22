@@ -5,20 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.Uri;
-import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
-import android.support.v4.widget.PopupMenuCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
@@ -51,12 +46,11 @@ import com.google.firebase.storage.UploadTask;
 import com.nexturn.ModifiedViews.DatePickerFrag;
 import com.nexturn.R;
 import com.nexturn.User_object;
-
-import org.w3c.dom.Text;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.Permission;
 
 public class Registration extends AppCompatActivity {
     final int STORAGE_PERM = 1;
@@ -64,6 +58,7 @@ public class Registration extends AppCompatActivity {
     boolean pass_visible = false;
     boolean valid_data;
     byte[] imgdecomp;
+    ByteArrayOutputStream byteArrayOutputStream;
     private ProgressDialog pd;
     private String fnamestr, imgURL, lnamestr, emailstr, genderstr, dobstr, mobilestr, passstr, aadharstr, locationstr, uidstr;
     private Spinner state_list;
@@ -73,10 +68,12 @@ public class Registration extends AppCompatActivity {
     private RadioButton gen;
     private RadioGroup gender;
     private TextView dob;
+    private Uri tempURI, imgURI;
     private User_object user_object;
     private FirebaseAuth firebaseAuth;
     private DatabaseReference databaseReference;
     private StorageReference storageReference;
+    private Bitmap img;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -129,7 +126,8 @@ public class Registration extends AppCompatActivity {
             pass_visible = false;
         }
     }
-    public void setUserImage(View v) {
+
+    public void setUserImage(final View v) {
         pop = new PopupMenu(this, v);
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, STORAGE_PERM);
@@ -139,15 +137,10 @@ public class Registration extends AppCompatActivity {
             pop.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem item) {
-                    Intent im = new Intent();
-                    im.setType("image/*");
-                    im.setAction(Intent.ACTION_GET_CONTENT);
-                    startActivityForResult(im, 1);
-
+                    CropImage.startPickImageActivity(Registration.this);
                     return true;
                 }
             });
-
         }
 
     }
@@ -203,13 +196,27 @@ public class Registration extends AppCompatActivity {
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 22 && resultCode == RESULT_OK) {
-            Bitmap img = (Bitmap) data.getExtras().get("data");
+        if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == RESULT_OK) {
+            imgURI = CropImage.getPickImageResultUri(this, data);
+            CropImage.activity(imgURI)
+                    .setGuidelines(CropImageView.Guidelines.ON)
+                    .setMultiTouchEnabled(true).setAspectRatio(1, 1)
+                    .start(this);
+        }
+
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             userimage = (ImageView) findViewById(R.id.userImage);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            img.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            try {
+                img = MediaStore.Images.Media.getBitmap(getContentResolver(), result.getUri());
+            } catch (IOException e) {
+                e.printStackTrace();
+                }
+            byteArrayOutputStream = new ByteArrayOutputStream();
+            img.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
             imgdecomp = byteArrayOutputStream.toByteArray();
-            Glide.with(getApplicationContext()).load(byteArrayOutputStream.toByteArray()).asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
+            Glide.with(getApplicationContext()).load(result.getUri())
+                    .asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
                 @Override
                 protected void setResource(Bitmap resource) {
                     RoundedBitmapDrawable circularBitmapDrawable =
@@ -220,22 +227,9 @@ public class Registration extends AppCompatActivity {
                     userimage.setMaxHeight(100);
                 }
             });
-
-        }
-        if (requestCode == 1 && resultCode == RESULT_OK && data.getData() != null) {
-            Uri imgUri = data.getData();
-            Intent cropIntent = new Intent("com.android.camera.action.CROP");
-            cropIntent.setDataAndType(imgUri, "image/*");
-            cropIntent.putExtra("crop", "true");
-            cropIntent.putExtra("aspectX", 1);
-            cropIntent.putExtra("aspectY", 1);
-            cropIntent.putExtra("outputX", 300);
-            cropIntent.putExtra("outputY", 300);
-            cropIntent.putExtra("return-data", true);
-            startActivityForResult(cropIntent, 22);
-
         }
     }
+
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sign_up:
@@ -268,7 +262,8 @@ public class Registration extends AppCompatActivity {
             firebaseAuth.createUserWithEmailAndPassword(emailstr, passstr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
-                    if (task.isSuccessful() && task.isComplete()) {
+                    if (task.isSuccessful()) {
+
                         uidstr = firebaseAuth.getCurrentUser().getUid();
                         if (imgdecomp != null) {
                             UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
@@ -283,11 +278,15 @@ public class Registration extends AppCompatActivity {
                                     imgURL = taskSnapshot.getDownloadUrl().toString();
                                     user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
                                     databaseReference.child(uidstr).setValue(user_object);
+                                    pd.dismiss();
+                                    finish();
+                                    startActivity(new Intent(Registration.this, HomeActivity.class));
                                 }
                             });
 
                         }
                     } else {
+                        pd.dismiss();
                         Toast.makeText(getApplicationContext(), "Network Error", Toast.LENGTH_LONG).show();
                     }
                 }

@@ -1,6 +1,6 @@
 package com.nexturn.Activites;
 
-import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.support.annotation.NonNull;
@@ -17,7 +17,6 @@ import com.facebook.FacebookSdk;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -35,7 +34,7 @@ public class LoginPage extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (firebaseAuth.getCurrentUser() != null) {
-            startActivity(new Intent(LoginPage.this, Profile.class));
+            startActivity(new Intent(LoginPage.this, HomeActivity.class));
         }
     }
 
@@ -45,7 +44,7 @@ public class LoginPage extends AppCompatActivity {
         fb();
         firebaseAuth = FirebaseAuth.getInstance();
         if (firebaseAuth.getCurrentUser() != null) {
-            startActivity(new Intent(LoginPage.this, Profile.class));
+            startActivity(new Intent(LoginPage.this, HomeActivity.class));
         }
         email = (EditText) findViewById(R.id.login_email);
         pass = (EditText) findViewById(R.id.login_password);
@@ -59,13 +58,19 @@ public class LoginPage extends AppCompatActivity {
         if (emailstr.isEmpty()) {
             Toast.makeText(this, "Please enter an email.", Toast.LENGTH_LONG).show();
         } else {
+            final ProgressDialog pd = new ProgressDialog(this);
+            pd.setMessage("Please wait...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.show();
             firebaseAuth.sendPasswordResetEmail(emailstr).addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful() && task.isComplete()) {
                         Toast.makeText(getApplicationContext(), "Password succesfully reset.", Toast.LENGTH_LONG).show();
+                        pd.dismiss();
                     } else {
                         Toast.makeText(getApplicationContext(), "Reset Fail.Try Again", Toast.LENGTH_LONG).show();
+                        pd.dismiss();
                     }
                 }
             });
@@ -74,17 +79,26 @@ public class LoginPage extends AppCompatActivity {
     public void logmein(View v) {
         emailstr = email.getText().toString();
         passstr = pass.getText().toString();
+
         if (emailstr.isEmpty()) {
             Toast.makeText(this, "Please enter an email.", Toast.LENGTH_LONG).show();
         } else {
+            final ProgressDialog pd = new ProgressDialog(this);
+            pd.setTitle("Logging you in ...");
+            pd.setMessage("Please wait...");
+            pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            pd.show();
+            pd.setCancelable(false);
             firebaseAuth.signInWithEmailAndPassword(emailstr, passstr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isComplete() && task.isSuccessful()) {
-                        startActivity(new Intent(LoginPage.this, Profile.class));
+                        pd.dismiss();
                         finish();
+                        startActivity(new Intent(LoginPage.this, HomeActivity.class));
                     } else {
                         Toast.makeText(getApplicationContext(), "Please check Email/Password", Toast.LENGTH_LONG).show();
+                        pd.dismiss();
                     }
                 }
             });

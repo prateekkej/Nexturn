@@ -37,8 +37,9 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activites.Profile"
+            android:name=".Activites.HomeActivity"
             android:screenOrientation="portrait" />
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity" />
     </application>
 
 </manifest>
