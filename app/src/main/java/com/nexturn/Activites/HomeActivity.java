@@ -7,10 +7,14 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
+import android.location.LocationProvider;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -38,6 +42,10 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -77,7 +85,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
     public static User_object user_obj;
     public static ImageView user_image;
     private static SupportMapFragment mapFragment;
@@ -105,12 +113,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LatLng myLatLng;
     private boolean isProfileON = false;
     private Location myLocation;
+    private LocationRequest locationRequest;
     private Marker myMarker;
     private LocationManager locationManager;
     private ByteArrayOutputStream byteArrayOutputStream;
     private Map<String, Object> loc_update;
     private User_location addedValue;
+    private GoogleApiClient googleApiClient;
 
+    public void location_request() {
+        locationRequest = new LocationRequest();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    public void onConnected(@Nullable Bundle bundle) {
+        try {
+            LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+        } catch (SecurityException e) {
+        }
+    }
+
+    public void onConnectionSuspended(int i) {
+
+    }
     public boolean onMarkerClick(Marker marker) {
         if (marker.isInfoWindowShown()) {
             marker.hideInfoWindow();
@@ -119,7 +144,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return true;
     }
-
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
@@ -178,12 +202,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                             user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
-
                 }
                 if (myLocation != null) {
                     user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL);
-                    location_db.child(user_location.uid).setValue(user_location);
-                    location_db.orderByChild("lat").startAt(user_location.getLat() - 0.04).endAt(user_location.getLat() + 0.04).addChildEventListener(new ChildEventListener() {
+                    location_db.child(user_obj.uid).setValue(user_location);
+                    location_db.orderByChild("lat").startAt(user_location.getLat() - 0.04).endAt(user_location.getLat() + 0.04)
+                            .addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                             if (dataSnapshot.getValue(User_location.class).uid == user_location.uid) {
@@ -233,12 +257,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                         @Override
                         public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
                         }
 
                         @Override
                         public void onCancelled(DatabaseError databaseError) {
-
+                        }
+                    });
+                    googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+                        @Override
+                        public void onMyLocationChange(Location location) {
+                            user_location.lat = location.getLatitude();
+                            user_location.lon = location.getLongitude();
+                            loc_update.put("lat", user_location.getLat());
+                            loc_update.put("lon", user_location.getLong());
+                            location_db.child(user_location.uid).updateChildren(loc_update);
                         }
                     });
                 }
@@ -251,27 +283,35 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    protected void onStart() {
+        super.onStart();
+        googleApiClient.connect();
+    }
     protected void onStop() {
         super.onStop();
         location_db.child(currentUser.getUid()).removeValue();
+        googleApiClient.disconnect();
     }
-
     void deleteEntry(User_location deletedEntry) {
         deletedEntry.marker.remove();
 
     }
-
     void updateMap(User_location newLocation) {
         newLocation.marker.setPosition(newLocation.getLatLng());
     }
-
     void addEntryToMap(User_location u) {
         u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()).title(u.name));
     }
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        list_for_added = new ArrayList<User_location>();
         setContentView(R.layout.activity_home);
+        list_for_added = new ArrayList<User_location>();
+        location_request();
+        googleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
         firebase_init();
         initialize_views();
@@ -281,20 +321,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERM);
         } else {
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
-            if (myLocation != null) {
-                myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-                mapFragment.getMapAsync(this);
-            } else {
-                new AlertDialog.Builder(this).setTitle("Location Services not found/enabled").setMessage("Please enable Location Services from Settings to enable full functionality of app.")
-                        .setCancelable(false).setPositiveButton("Gotcha", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                }).show();
-            }
+            myLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         }
         getSupportActionBar().setTitle("Home");
         list_drawer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -324,17 +351,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         drawerLayout.closeDrawer(list_drawer);
                         break;
                     case 3:
-                        if (fm.findFragmentByTag("settings") != null) {
-                            fm.popBackStack();
-                        } else {
-                            fm.beginTransaction().replace(R.id.content_frame, settings, "settings").addToBackStack(null).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
-                        }
-                        drawerLayout.closeDrawer(list_drawer);
-                        break;
-                    case 4:
                         invite_karo();
                         break;
-                    case 5:
+                    case 4:
                         location_db.child(currentUser.getUid()).removeValue();
                         firebaseAuth.signOut();
                         startActivity(new Intent(HomeActivity.this, LoginPage.class));
@@ -345,7 +364,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     void fragments_initialize() {
         fm = getSupportFragmentManager();
         pro = new Profile_Fragment();
@@ -413,7 +431,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     void insert_data() {
         list.add("Home");
         list.add("Profile View");
-        list.add("App Settings");
         list.add("Share");
         list.add("Log out");
         list_drawer.addHeaderView(nav_head);
@@ -446,7 +463,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
-
     void firebase_init() {
         databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
         firebaseAuth = FirebaseAuth.getInstance();
@@ -455,7 +471,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         location_db = FirebaseDatabase.getInstance().getReference("users_recent_location");
         location_db.keepSynced(true);
     }
-
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERM && (grantResults[0] == -1 || grantResults[1] == -1)) {
@@ -469,6 +484,22 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }).setCancelable(false).show();
         }
     }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (myLocation == null) {
+            myLocation = location;
+            myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            mapFragment.getMapAsync(this);
+            this.onResume();
+        }
+    }
+
+
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
 }
 
 class User_location extends User_object {

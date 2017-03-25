@@ -137,12 +137,12 @@
             android:textSize="18sp" />
 
         <view
+            android:id="@+id/googleButton"
             class="com.google.android.gms.common.SignInButton"
             id="@+id/view4"
             layout_width="match_parent"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:onClick="signinwithGoogle" />
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

@@ -17,6 +17,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -34,6 +35,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
     private FirebaseAuth firebaseAuth;
     private GoogleSignInOptions gso;
     private GoogleApiClient mGoogleApiClient;
+    private SignInButton googleButton;
     @Override
     protected void onResume() {
         super.onResume();
@@ -78,6 +80,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -87,6 +90,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
         setContentView(R.layout.activity_login_page);
+        googleButton = (SignInButton) findViewById(R.id.googleButton);
         firebaseAuth = FirebaseAuth.getInstance();
         firebaseAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
             @Override
@@ -96,7 +100,12 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 }
             }
         });
-
+        googleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                signinwithGoogle(view);
+            }
+        });
         email = (EditText) findViewById(R.id.login_email);
         pass = (EditText) findViewById(R.id.login_password);
         login=(Button)findViewById(R.id.login_button);
