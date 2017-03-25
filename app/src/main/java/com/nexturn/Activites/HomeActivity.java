@@ -44,8 +44,15 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -120,10 +127,38 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Map<String, Object> loc_update;
     private User_location addedValue;
     private GoogleApiClient googleApiClient;
-
+    private LocationSettingsRequest.Builder builder;
     public void location_request() {
         locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        builder = new LocationSettingsRequest.Builder();
+        builder.addLocationRequest(locationRequest);
+        PendingResult<LocationSettingsResult> result =
+                LocationServices.SettingsApi.checkLocationSettings(googleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(@NonNull LocationSettingsResult locationSettingsResult) {
+                final Status status = locationSettingsResult.getStatus();
+                final LocationSettingsStates locationSettingsStates = locationSettingsResult.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can initialize location
+                        // requests here
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+
+                        new AlertDialog.Builder(HomeActivity.this).setTitle("Location Services not found/enabled").setMessage("Please enable Location Services from Settings to enable full functionality of app.")
+                                .setCancelable(false).setPositiveButton("Gotcha", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                                startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), LOCATION_PERM + 1);
+                            }
+                        }).show();
+                        break;
+                }
+            }
+        });
     }
 
     public void onConnected(@Nullable Bundle bundle) {
@@ -146,7 +181,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
-        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+        if (myLatLng != null) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+        }
         try {
             googleMap.setMyLocationEnabled(true);
         } catch (SecurityException e) {
@@ -154,6 +191,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         googleMap.setTrafficEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
+        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                return true;
+            }
+        });
     }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.bar_home, menu);
@@ -206,7 +249,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (myLocation != null) {
                     user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL);
                     location_db.child(user_obj.uid).setValue(user_location);
-                    location_db.orderByChild("lat").startAt(user_location.getLat() - 0.04).endAt(user_location.getLat() + 0.04)
+                    location_db.orderByChild("lat").startAt(myLocation.getLatitude() - 0.04).endAt(myLocation.getLatitude() + 0.04)
                             .addChildEventListener(new ChildEventListener() {
                         @Override
                         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -282,7 +325,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
     }
-
     protected void onStart() {
         super.onStart();
         googleApiClient.connect();
@@ -306,12 +348,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         list_for_added = new ArrayList<User_location>();
-        location_request();
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+        location_request();
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
         firebase_init();
         initialize_views();
@@ -322,6 +364,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERM);
         } else {
             myLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            mapFragment.getMapAsync(this);
         }
         getSupportActionBar().setTitle("Home");
         list_drawer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
