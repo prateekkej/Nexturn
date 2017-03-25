@@ -43,6 +43,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.nexturn.DatabaseUtil;
 import com.nexturn.ModifiedViews.DatePickerFrag;
 import com.nexturn.R;
 import com.nexturn.User_object;
@@ -77,17 +78,11 @@ public class Registration extends AppCompatActivity {
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
         setContentView(R.layout.registration);
         firebaseAuth = FirebaseAuth.getInstance();
         storageReference = FirebaseStorage.getInstance().getReference();
         firebaseAuth.signOut();
-        databaseReference = FirebaseDatabase.getInstance().getReference("users_info");
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERM);
-        } else {
-            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            Location me = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-        }
         initialize_view();
 
 
@@ -213,7 +208,7 @@ public class Registration extends AppCompatActivity {
                 e.printStackTrace();
                 }
             byteArrayOutputStream = new ByteArrayOutputStream();
-            img.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
+            img.compress(Bitmap.CompressFormat.JPEG, 40, byteArrayOutputStream);
             imgdecomp = byteArrayOutputStream.toByteArray();
             Glide.with(getApplicationContext()).load(result.getUri())
                     .asBitmap().centerCrop().into(new BitmapImageViewTarget(userimage) {
@@ -259,25 +254,43 @@ public class Registration extends AppCompatActivity {
             pd.setTitle("Registering User....");
             pd.setMessage("Please wait \nWhile we get you registered...");
             pd.show();
+
             firebaseAuth.createUserWithEmailAndPassword(emailstr, passstr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
                     if (task.isSuccessful()) {
-
                         uidstr = firebaseAuth.getCurrentUser().getUid();
-                        if (imgdecomp != null) {
+                        imgURL = "";
+                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
+                        databaseReference.child(uidstr).setValue(user_object).addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(getApplicationContext(), "Profile Created", Toast.LENGTH_LONG).show();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getApplicationContext(), "Error in creating your profile.Try Again", Toast.LENGTH_LONG).show();
+                                firebaseAuth.signOut();
+                                pd.dismiss();
+                            }
+                        });
+                        if (imgdecomp != null && firebaseAuth.getCurrentUser() != null) {
                             UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
                             uploadTask.addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
                                     Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_LONG).show();
+                                    pd.dismiss();
+                                    finish();
+                                    startActivity(new Intent(Registration.this, HomeActivity.class));
                                 }
                             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                 @Override
                                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                     imgURL = taskSnapshot.getDownloadUrl().toString();
-                                    user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
-                                    databaseReference.child(uidstr).setValue(user_object);
+                                    databaseReference.child(firebaseAuth.getCurrentUser().getUid()).child("imgURL").setValue(imgURL);
+                                    Toast.makeText(getApplicationContext(), "Image Upload Successful", Toast.LENGTH_LONG).show();
                                     pd.dismiss();
                                     finish();
                                     startActivity(new Intent(Registration.this, HomeActivity.class));

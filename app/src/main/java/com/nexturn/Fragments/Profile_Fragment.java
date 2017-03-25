@@ -2,16 +2,19 @@ package com.nexturn.Fragments;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v7.graphics.drawable.DrawableWrapper;
 import android.support.v7.widget.PopupMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
@@ -24,6 +27,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.nexturn.DatabaseUtil;
 import com.nexturn.ModifiedViews.ourTextView;
 import com.nexturn.R;
 import com.nexturn.User_object;
@@ -49,7 +53,6 @@ public class Profile_Fragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        currentUser = firebaseAuth.getCurrentUser();
         databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -62,7 +65,7 @@ public class Profile_Fragment extends Fragment {
                 dob.setText(user_obj.dob);
                 loc.setText(user_obj.location);
                 if (user_obj.imgURL != null) {
-                    Glide.with(getContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
+                    Glide.with(getActivity()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
                         @Override
                         protected void setResource(Bitmap resource) {
                             RoundedBitmapDrawable circularBitmapDrawable =
@@ -90,7 +93,7 @@ public class Profile_Fragment extends Fragment {
         currentUser = firebaseAuth.getCurrentUser();
         vg = container;
         storageReference = FirebaseStorage.getInstance().getReference();
-        databaseReference = FirebaseDatabase.getInstance().getReference("users_info");
+        databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
         initialize_views();
         user_image.setOnClickListener(new View.OnClickListener() {
             @Override

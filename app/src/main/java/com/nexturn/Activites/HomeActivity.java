@@ -1,18 +1,31 @@
 package com.nexturn.Activites;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,18 +38,30 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.nexturn.DatabaseUtil;
 import com.nexturn.Fragments.Profile_Fragment;
+import com.nexturn.Fragments.SettingsPage;
 import com.nexturn.ModifiedViews.ourTextView;
 import com.nexturn.R;
 import com.nexturn.User_object;
@@ -46,36 +71,70 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
     public static User_object user_obj;
     public static ImageView user_image;
-    private FragmentManager fm;
-    private ListView list_drawer;
-    private View nav_head;
-    private String imgURL;
-    private ourTextView name, email;
-    private ActionBarDrawerToggle toggle;
-    private DrawerLayout drawerLayout;
+    private static SupportMapFragment mapFragment;
+    final int LOCATION_PERM = 2;
+    List<User_location> list_for_added;
+    private FirebaseAuth firebaseAuth;                        /*Firebase Pointers*/
+    private DatabaseReference databaseReference;               /*Firebase Pointers*/
+    private DatabaseReference location_db;                     /*Firebase Pointers*/
+    private StorageReference storageReference;                 /*Firebase Pointers*/
+    private FirebaseUser currentUser;                          /*Firebase Pointers*/
+    private Fragment pro, settings;
+    private FragmentManager fm;                                 /*View*/
+    private ListView list_drawer;                               /*View*/
+    private View nav_head;                                      /*View*/
+    private ourTextView name, email;                            /*View*/
+    private ActionBarDrawerToggle toggle;                       /*etc*/
+    private DrawerLayout drawerLayout;                          /*View*/
     private ArrayAdapter<String> abc;
     private ArrayList<String> list;
-    private FirebaseAuth firebaseAuth;
-    private DatabaseReference databaseReference;
-    private StorageReference storageReference;
-    private FirebaseUser currentUser;
-    private Fragment pro, map;
+    private User_location user_location;
     private Bitmap img;
     private Uri imgURI;
+    private GoogleMap googleMap;
     private byte[] imgdecomp;
+    private LatLng myLatLng;
+    private boolean isProfileON = false;
+    private Location myLocation;
+    private Marker myMarker;
+    private LocationManager locationManager;
     private ByteArrayOutputStream byteArrayOutputStream;
+    private Map<String, Object> loc_update;
+    private User_location addedValue;
 
-    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (marker.isInfoWindowShown()) {
+            marker.hideInfoWindow();
+        } else {
+            marker.showInfoWindow();
+        }
+        return true;
+    }
+
+    public void onMapReady(final GoogleMap googleMap) {
+        this.googleMap = googleMap;
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+        try {
+            googleMap.setMyLocationEnabled(true);
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+        googleMap.setTrafficEnabled(true);
+        googleMap.getUiSettings().setZoomControlsEnabled(true);
+    }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.bar_home, menu);
         return true;
     }
-
-    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.exit:
@@ -91,14 +150,13 @@ public class HomeActivity extends AppCompatActivity {
         }
         return true;
     }
-
     protected void onResume() {
         super.onResume();
-        currentUser = firebaseAuth.getCurrentUser();
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        loc_update = new HashMap<String, Object>();
+        databaseReference.child(currentUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                user_obj = dataSnapshot.child(currentUser.getUid()).getValue(User_object.class);
+                user_obj = dataSnapshot.getValue(User_object.class);
                 name.setText(user_obj.fname + " " + user_obj.lname);
                 email.setText(user_obj.email);
                 if (user_obj.imgURL != null) {
@@ -111,41 +169,173 @@ public class HomeActivity extends AppCompatActivity {
                             user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
+                    Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(HomeActivity.user_image) {
+                        @Override
+                        protected void setResource(Bitmap resource) {
+                            RoundedBitmapDrawable circularBitmapDrawable =
+                                    RoundedBitmapDrawableFactory.create(getResources(), resource);
+                            circularBitmapDrawable.setCircular(true);
+                            user_image.setImageDrawable(circularBitmapDrawable);
+                        }
+                    });
+
+                }
+                if (myLocation != null) {
+                    user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL);
+                    location_db.child(user_location.uid).setValue(user_location);
+                    location_db.orderByChild("lat").startAt(user_location.getLat() - 0.04).endAt(user_location.getLat() + 0.04).addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            if (dataSnapshot.getValue(User_location.class).uid == user_location.uid) {
+                            } else {
+                                addedValue = dataSnapshot.getValue(User_location.class);
+                                addEntryToMap(addedValue);
+                                list_for_added.add(addedValue);
+                            }
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                            User_location changedObject = dataSnapshot.getValue(User_location.class);
+                            Log.v("ffff", dataSnapshot.toString());
+                            if (changedObject.uid == user_location.uid) {
+                            } else {
+                                User_location temp = new User_location();
+                                for (User_location u : list_for_added) {
+                                    if (u.uid == changedObject.uid) {
+                                        u.lon = changedObject.lon;
+                                        u.lat = changedObject.lat;
+                                        temp = u;
+                                    }
+                                }
+                                updateMap(temp);
+                            }
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            User_location changedObject = dataSnapshot.getValue(User_location.class);
+                            Log.v("ffff", dataSnapshot.toString());
+                            if (changedObject.uid == user_location.uid) {
+                            } else {
+                                User_location temp = new User_location();
+                                for (User_location u : list_for_added) {
+                                    if (u.uid == changedObject.uid) {
+                                        u.lon = changedObject.lon;
+                                        u.lat = changedObject.lat;
+                                        temp = u;
+                                    }
+                                }
+                                deleteEntry(temp);
+                                list_for_added.remove(temp);
+                            }
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
                 }
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                Toast.makeText(getApplicationContext(), databaseError.toString(), Toast.LENGTH_LONG).show();
             }
         });
+
+    }
+
+    protected void onStop() {
+        super.onStop();
+        location_db.child(currentUser.getUid()).removeValue();
+    }
+
+    void deleteEntry(User_location deletedEntry) {
+        deletedEntry.marker.remove();
+
+    }
+
+    void updateMap(User_location newLocation) {
+        newLocation.marker.setPosition(newLocation.getLatLng());
+    }
+
+    void addEntryToMap(User_location u) {
+        u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()).title(u.name));
     }
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        list_for_added = new ArrayList<User_location>();
         setContentView(R.layout.activity_home);
-        firebaseAuth = FirebaseAuth.getInstance();
-        currentUser = firebaseAuth.getCurrentUser();
-        storageReference = FirebaseStorage.getInstance().getReference();
-        databaseReference = FirebaseDatabase.getInstance().getReference("users_info");
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
+        firebase_init();
         initialize_views();
         insert_data();
-        fm = getSupportFragmentManager();
+        fragments_initialize();
+        fm.beginTransaction().add(R.id.content_frame, mapFragment, "map").commit();
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERM);
+        } else {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            myLocation = locationManager.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER);
+            if (myLocation != null) {
+                myLatLng = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
+                mapFragment.getMapAsync(this);
+            } else {
+                new AlertDialog.Builder(this).setTitle("Location Services not found/enabled").setMessage("Please enable Location Services from Settings to enable full functionality of app.")
+                        .setCancelable(false).setPositiveButton("Gotcha", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                }).show();
+            }
+        }
         getSupportActionBar().setTitle("Home");
-        intialize_fragments();
         list_drawer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 switch (i) {
                     case 1:
-                        fm.beginTransaction().replace(R.id.content_frame, map).commit();
+                        if (isProfileON) {
+                            if (fm.findFragmentByTag("map") != null) {
+                                fm.popBackStack();
+                            } else {
+                                fm.beginTransaction().replace(R.id.content_frame, mapFragment).addToBackStack(null).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+                                mapFragment.getMapAsync(HomeActivity.this);
+                            }
+                            isProfileON = false;
+                        }
+                        drawerLayout.closeDrawer(list_drawer);
+                        break;
                     case 2:
-                        fm.beginTransaction().replace(R.id.content_frame, pro).commit();
+                        if (!isProfileON) {
+                            if (fm.findFragmentByTag("profile") != null) {
+                                fm.popBackStack();
+                            }
+                            fm.beginTransaction().replace(R.id.content_frame, pro, "profile").addToBackStack(null).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+                            isProfileON = true;
+                        }
+                        drawerLayout.closeDrawer(list_drawer);
+                        break;
+                    case 3:
+                        if (fm.findFragmentByTag("settings") != null) {
+                            fm.popBackStack();
+                        } else {
+                            fm.beginTransaction().replace(R.id.content_frame, settings, "settings").addToBackStack(null).setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE).commit();
+                        }
                         drawerLayout.closeDrawer(list_drawer);
                         break;
                     case 4:
                         invite_karo();
                         break;
                     case 5:
+                        location_db.child(currentUser.getUid()).removeValue();
                         firebaseAuth.signOut();
                         startActivity(new Intent(HomeActivity.this, LoginPage.class));
                         Toast.makeText(getApplicationContext(), "Logged Out", Toast.LENGTH_LONG).show();
@@ -156,10 +346,13 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    void intialize_fragments() {
+    void fragments_initialize() {
+        fm = getSupportFragmentManager();
         pro = new Profile_Fragment();
-    }
+        mapFragment = new SupportMapFragment();
+        settings = new SettingsPage();
 
+    }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CropImage.PICK_IMAGE_CHOOSER_REQUEST_CODE && resultCode == RESULT_OK) {
@@ -178,7 +371,7 @@ public class HomeActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             byteArrayOutputStream = new ByteArrayOutputStream();
-            img.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            img.compress(Bitmap.CompressFormat.JPEG, 40, byteArrayOutputStream);
             imgdecomp = byteArrayOutputStream.toByteArray();
             UploadTask imgupload = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
             imgupload.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -211,14 +404,12 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
     }
-
     public void invite_karo() {
         Intent share = new Intent(Intent.ACTION_SEND);
         share.putExtra(Intent.EXTRA_TEXT, "Hey!! Check out this new App!!\n \n" + "link");
         share.setType("text/plain");
         startActivity(Intent.createChooser(share, "Share app to..."));
     }
-
     void insert_data() {
         list.add("Home");
         list.add("Profile View");
@@ -231,14 +422,12 @@ public class HomeActivity extends AppCompatActivity {
     }
     void initialize_views() {
         toggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
-
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 getSupportActionBar().setTitle("Nexturn");
                 invalidateOptionsMenu();
             }
-
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
@@ -256,6 +445,69 @@ public class HomeActivity extends AppCompatActivity {
         user_image = (ImageView) nav_head.findViewById(R.id.userimage_nav);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+    }
+
+    void firebase_init() {
+        databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
+        firebaseAuth = FirebaseAuth.getInstance();
+        currentUser = firebaseAuth.getCurrentUser();
+        storageReference = FirebaseStorage.getInstance().getReference();
+        location_db = FirebaseDatabase.getInstance().getReference("users_recent_location");
+        location_db.keepSynced(true);
+    }
+
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == LOCATION_PERM && (grantResults[0] == -1 || grantResults[1] == -1)) {
+            Toast.makeText(getApplicationContext(), permissions.toString(), Toast.LENGTH_SHORT).show();
+            AlertDialog ad = new AlertDialog.Builder(this).setTitle("Location Permission Required").setMessage("This app requires Location services" +
+                    " to work at its heart.Without Location permissions,we wont be able to help.").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                }
+            }).setCancelable(false).show();
+        }
+    }
+}
+
+class User_location extends User_object {
+    public String uid, name, imgURL;
+    public double lat, lon;
+    public Marker marker;
+
+    User_location() {
+        uid = "";
+        lat = 0;
+        lon = 0;
+        name = "";
+        imgURL = "";
+        marker = null;
+    }
+
+    User_location(String a, String b, double c, double d, String e) {
+        uid = a;
+        name = b;
+        lat = c;
+        lon = d;
+        imgURL = e;
+    }
+
+    double getLong() {
+        return lon;
+    }
+
+    double getLat() {
+        return lat;
+    }
+
+    LatLng getLatLng() {
+        return new LatLng(lat, lon);
+    }
+
+    @Override
+    public String toString() {
+        return name + " " + uid;
     }
 }
 

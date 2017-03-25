@@ -13,11 +13,111 @@
     <string name="lname">Last Name</string>
     <string name="pata">Location</string>
     <string name="gender">Gender</string>
-
     <style name="drawer_open">Drawer opened</style>
-
     <style name="drawer_close">Drawer closed</style>
 
+    <string name="maps_style">[
+    {    "featureType": "administrative.neighborhood",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "poi",
+    "elementType": "labels.text",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "poi.business",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "poi.park",
+    "elementType": "labels.text",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "poi.place_of_worship",
+    "stylers": [
+    {
+    "visibility": "on"
+    }
+    ]
+    },
+    {
+    "featureType": "poi.school",
+    "stylers": [
+    {
+    "visibility": "on"
+    }
+    ]
+    },
+    {
+    "featureType": "road",
+    "elementType": "labels",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "road.arterial",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "road.highway",
+    "elementType": "labels",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "road.local",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    },
+    {
+    "featureType": "transit",
+    "stylers": [
+    {
+    "visibility": "on"
+    }
+    ]
+    },
+    {
+    "featureType": "water",
+    "elementType": "labels.text",
+    "stylers": [
+    {
+    "visibility": "off"
+    }
+    ]
+    }
+    ]</string>
     <string-array name="indian_states">
         <item>Select your State</item>>
         <item>Andaman and Nicobar Islands</item>
@@ -58,11 +158,10 @@
         <item>West Bengal</item>
     </string-array>
     <string name="title_activity_profile_page">ProfilePage</string>
-
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
-
+    <string name="google_maps_key">AIzaSyCO012JPUEhWQZwWhm7pP8rEVbxvWtAZkk
+</string>
 </resources>

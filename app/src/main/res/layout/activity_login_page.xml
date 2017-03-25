@@ -136,6 +136,14 @@
             android:text="@string/forgot"
             android:textSize="18sp" />
 
+        <view
+            class="com.google.android.gms.common.SignInButton"
+            id="@+id/view4"
+            layout_width="match_parent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="signinwithGoogle" />
+
     </LinearLayout>
 
     <TableRow
@@ -146,18 +154,6 @@
         android:layout_centerInParent="true"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp">
-
-        <view
-            android:id="@+id/fbButton"
-            class="com.facebook.login.widget.LoginButton"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical|center_horizontal"
-            android:layout_marginRight="10dp"
-            android:layout_weight="1"
-            android:animateOnClick="true"
-            android:textSize="14sp"
-            android:visibility="gone" />
 
     </TableRow>
 

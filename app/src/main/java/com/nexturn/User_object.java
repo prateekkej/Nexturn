@@ -7,6 +7,7 @@ package com.nexturn;
 public class User_object {
 
     public String fname, lname, email, gender, dob, mobile, aadhar, location, uid, imgURL;
+    public boolean isLoggedIn;
 
     public User_object() {
         fname = "First Name";

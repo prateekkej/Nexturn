@@ -353,7 +353,7 @@
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:onClick="setUserImage"
-        app:srcCompat="@android:drawable/sym_def_app_icon" />
+        app:srcCompat="@drawable/placeholder" />
 
 
 </RelativeLayout>
