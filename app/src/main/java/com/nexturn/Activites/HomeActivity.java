@@ -160,23 +160,16 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     public void onConnected(@Nullable Bundle bundle) {
         try {
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
         } catch (SecurityException e) {
         }
     }
-
     public void onConnectionSuspended(int i) {
 
     }
     public boolean onMarkerClick(Marker marker) {
-        if (marker.isInfoWindowShown()) {
-            marker.hideInfoWindow();
-        } else {
-            marker.showInfoWindow();
-        }
         return true;
     }
     public void onMapReady(final GoogleMap googleMap) {
@@ -354,11 +347,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .addOnConnectionFailedListener(this)
                 .build();
         location_request();
-        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
         firebase_init();
         initialize_views();
         insert_data();
         fragments_initialize();
+
         fm.beginTransaction().add(R.id.content_frame, mapFragment, "map").commit();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERM);
@@ -503,6 +496,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         name = (ourTextView) nav_head.findViewById(R.id.username_nav);
         email = (ourTextView) nav_head.findViewById(R.id.email_nav);
         user_image = (ImageView) nav_head.findViewById(R.id.userimage_nav);
+        getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
+
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
@@ -527,8 +522,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             }).setCancelable(false).show();
         }
     }
-
-    @Override
     public void onLocationChanged(Location location) {
         if (myLocation == null) {
             myLocation = location;
@@ -537,14 +530,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             this.onResume();
         }
     }
-
-
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
-
 }
-
 class User_location extends User_object {
     public String uid, name, imgURL;
     public double lat, lon;
