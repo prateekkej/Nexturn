@@ -6,10 +6,13 @@ package com.nexturn;
 
 public class User_object {
 
-    public String fname, lname, email, gender, signedUpUsing, dob, mobile, aadhar, location, uid, imgURL;
-    public boolean isLoggedIn;
+    public String fname, lname, email, gender, signedUpUsing, dob, mobile, aadhar, location, uid, imgURL, fblink;
+    public int fb, gg, em;
 
     public User_object() {
+        fb = 0;
+        gg = 0;
+        em = 0;
         fname = "First Name";
         lname = "Last Name";
         uid = "ID";
@@ -20,11 +23,11 @@ public class User_object {
         aadhar = "XXXX/XXXX/XXXX";
         imgURL = " ";
         location = "State";
-        isLoggedIn = false;
         signedUpUsing = "E";
+        fblink = null;
     }
 
-    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR, String signUpMethod) {
+    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR, String signUpMethod, String fbl) {
         fname = fname1;
         lname = lname1;
         uid = uid1;
@@ -36,6 +39,14 @@ public class User_object {
         imgURL = imgUR;
         location = location1;
         signedUpUsing = signUpMethod;
+        if (signedUpUsing.equals("G")) {
+            gg = 1;
+        } else if (signedUpUsing.equals("E")) {
+            em = 1;
+        } else if (signedUpUsing.equals("F")) {
+            fb = 1;
+            fblink = fbl;
+        }
     }
 
     @Override

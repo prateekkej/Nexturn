@@ -69,14 +69,6 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
     private Profile fbProfile;
     private ProfileTracker fbProfileTracker;
     @Override
-    protected void onResume() {
-        super.onResume();
-        if (firebaseAuth.getCurrentUser() != null) {
-            startActivity(new Intent(LoginPage.this, HomeActivity.class));
-        }
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1) {
@@ -95,7 +87,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
     }
 
-    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+    private void firebaseAuthWithGoogle(final GoogleSignInAccount acct) {
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -110,9 +102,11 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                         if (dataSnapshot.getValue(User_object.class) == null) {
                                             databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
                                                     currentUser.getDisplayName(), "", currentUser.getEmail()
-                                                    , "", "", "", "", "", currentUser.getPhotoUrl().toString(), "G"));
+                                                    , "", "", "", "", "", currentUser.getPhotoUrl().toString(), "G", null));
                                         } else {
-
+                                            Map<String, Object> update_map = new HashMap<String, Object>();
+                                            update_map.put("gg", 1);
+                                            databaseReference.child(currentUser.getUid()).updateChildren(update_map);
                                             databaseReference.removeEventListener(this);
                                         }
                                     }
@@ -146,8 +140,8 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 .build();
         setContentView(R.layout.activity_login_page);
         signInWithFacebook();
-        googleButton = (SignInButton) findViewById(R.id.googleButton);
         firebaseAuth = FirebaseAuth.getInstance();
+        googleButton = (SignInButton) findViewById(R.id.googleButton);
         googleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -182,23 +176,6 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                             // profile2 is the new profile
                             fbProfile = profile2;
                             fbProfileTracker.stopTracking();
-                            GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                                @Override
-                                public void onCompleted(JSONObject object, GraphResponse response) {
-                                    try {
-                                        gender = object.getString("gender");
-                                        dob = object.getString("birthday");
-                                        location = object.getJSONObject("location").getString("name");
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-                            });
-                            Bundle parameters = new Bundle();
-                            parameters.putString("fields", "gender,birthday,location");
-                            graphRequest.setParameters(parameters);
-                            graphRequest.executeAsync();
                         }
                     };
                     // no need to call startTracking() on mProfileTracker
@@ -206,8 +183,26 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 } else {
                     fbProfile = Profile.getCurrentProfile();
                 }
+                GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        try {
+                            gender = object.getString("gender");
+                            dob = object.getString("birthday");
+                            location = object.getJSONObject("location").getString("name");
 
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                });
+                Bundle parameters = new Bundle();
+                parameters.putString("fields", "gender,birthday,location");
+                graphRequest.setParameters(parameters);
+                graphRequest.executeAsync();
                 handleFacebookAccessToken(loginResult.getAccessToken());
+
             }
 
             @Override
@@ -237,12 +232,15 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                         if (dataSnapshot.getValue(User_object.class) == null) {
                                             databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
                                                     fbProfile.getFirstName(), fbProfile.getLastName(), currentUser.getEmail()
-                                                    , gender, dob, "", "", location, fbProfile.getProfilePictureUri(400, 400).toString(), "F"));
+                                                    , gender, dob, "", "", location, fbProfile.getProfilePictureUri(400, 400).toString(), "F",
+                                                    fbProfile.getLinkUri().toString()));
                                         } else {
                                             Map<String, Object> update_user = new HashMap<String, Object>();
                                             update_user.put("gender", gender);
                                             update_user.put("location", location);
                                             update_user.put("dob", dob);
+                                            update_user.put("fb", 1);
+                                            update_user.put("fblink", fbProfile.getLinkUri().toString());
                                             update_user.put("imgURL", fbProfile.getProfilePictureUri(400, 400).toString());
                                             databaseReference.child(currentUser.getUid()).updateChildren(update_user);
                                             databaseReference.removeEventListener(this);

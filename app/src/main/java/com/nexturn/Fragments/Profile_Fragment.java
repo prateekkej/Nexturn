@@ -1,5 +1,6 @@
 package com.nexturn.Fragments;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -27,11 +28,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.nexturn.Activites.HomeActivity;
 import com.nexturn.DatabaseUtil;
 import com.nexturn.ModifiedViews.ourTextView;
 import com.nexturn.R;
 import com.nexturn.User_object;
 import com.theartofdev.edmodo.cropper.CropImage;
+
+import java.util.zip.Inflater;
 
 import static com.nexturn.Activites.HomeActivity.user_obj;
 
@@ -40,8 +44,8 @@ import static com.nexturn.Activites.HomeActivity.user_obj;
  */
 
 public class Profile_Fragment extends Fragment {
+    public static ImageView user_image;
     ourTextView name, email, gender, mobile, dob, aadhar, loc;
-    ImageView user_image;
     ViewGroup vg;
     View v;
     private FirebaseAuth firebaseAuth;
@@ -50,53 +54,46 @@ public class Profile_Fragment extends Fragment {
     private FirebaseUser currentUser;
     private PopupMenu pop;
 
+    public static void changeImage(final Context ct) {
+        if (HomeActivity.user_obj.imgURL != null) {
+
+            Glide.with(ct).load(HomeActivity.user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
+                @Override
+                protected void setResource(Bitmap resource) {
+                    RoundedBitmapDrawable circularBitmapDrawable =
+                            RoundedBitmapDrawableFactory.create(ct.getResources(), resource);
+                    circularBitmapDrawable.setCircular(true);
+                    user_image.setImageDrawable(circularBitmapDrawable);
+                }
+            });
+
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                user_obj = dataSnapshot.child(currentUser.getUid()).getValue(User_object.class);
-                if (user_obj != null) {
-                name.setText(user_obj.fname + " " + user_obj.lname);
-                email.setText(user_obj.email);
-                mobile.setText(user_obj.mobile);
-                aadhar.setText(user_obj.aadhar);
-                gender.setText(user_obj.gender);
-                dob.setText(user_obj.dob);
-                loc.setText(user_obj.location);
-                if (user_obj.imgURL != null) {
-                    Glide.with(getActivity()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
-                        @Override
-                        protected void setResource(Bitmap resource) {
-                            RoundedBitmapDrawable circularBitmapDrawable =
-                                    RoundedBitmapDrawableFactory.create(getResources(), resource);
-                            circularBitmapDrawable.setCircular(true);
-                            user_image.setImageDrawable(circularBitmapDrawable);
-                        }
-                    });
-                }
+        if (HomeActivity.user_obj != null) {
+            name.setText(HomeActivity.user_obj.fname + " " + user_obj.lname);
+            email.setText(HomeActivity.user_obj.email);
+            mobile.setText(HomeActivity.user_obj.mobile);
+            aadhar.setText(HomeActivity.user_obj.aadhar);
+            gender.setText(HomeActivity.user_obj.gender);
+            dob.setText(HomeActivity.user_obj.dob);
+            loc.setText(HomeActivity.user_obj.location);
+            changeImage(getContext());
                 }
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        v = inflater.inflate(R.layout.profile_frag, null);
+        initialize_views(inflater);
         firebaseAuth = FirebaseAuth.getInstance();
         currentUser = firebaseAuth.getCurrentUser();
         vg = container;
         storageReference = FirebaseStorage.getInstance().getReference();
         databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
-        initialize_views();
         user_image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -115,7 +112,8 @@ public class Profile_Fragment extends Fragment {
         return v;
     }
 
-    void initialize_views() {
+    void initialize_views(LayoutInflater inflater) {
+        v = inflater.inflate(R.layout.profile_frag, null);
         name = (ourTextView) v.findViewById(R.id.name_profile);
         email = (ourTextView) v.findViewById(R.id.email_profile);
         gender = (ourTextView) v.findViewById(R.id.gender_profile);

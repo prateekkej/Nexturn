@@ -224,7 +224,6 @@ public class Registration extends AppCompatActivity {
             });
         }
     }
-
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sign_up:
@@ -261,46 +260,51 @@ public class Registration extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         uidstr = firebaseAuth.getCurrentUser().getUid();
                         imgURL = "";
-                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL, "E");
+                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL, "E", null);
                         databaseReference.child(uidstr).setValue(user_object).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {
                                 Toast.makeText(getApplicationContext(), "Profile Created", Toast.LENGTH_LONG).show();
+                                if (imgdecomp != null && firebaseAuth.getCurrentUser() != null) {
+                                    UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
+                                    uploadTask.addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_SHORT).show();
+                                            pd.dismiss();
+                                            startActivity(new Intent(Registration.this, HomeActivity.class));
+                                            finish();
+
+                                        }
+                                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                        @Override
+                                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                            imgURL = taskSnapshot.getDownloadUrl().toString();
+                                            databaseReference.child(firebaseAuth.getCurrentUser().getUid()).child("imgURL").setValue(imgURL);
+                                            Toast.makeText(getApplicationContext(), "Image Upload Successful", Toast.LENGTH_SHORT).show();
+                                            pd.dismiss();
+                                            startActivity(new Intent(Registration.this, HomeActivity.class));
+                                            finish();
+
+                                        }
+                                    });
+                                }
                             }
                         }).addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getApplicationContext(), "Error in creating your profile.Try Again", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Error in creating your profile.Try Again\n", Toast.LENGTH_SHORT).show();
+                                firebaseAuth.getCurrentUser().delete();
                                 firebaseAuth.signOut();
                                 pd.dismiss();
                             }
                         });
-                        if (imgdecomp != null && firebaseAuth.getCurrentUser() != null) {
-                            UploadTask uploadTask = storageReference.child("user-images/" + firebaseAuth.getCurrentUser().getUid()).putBytes(imgdecomp);
-                            uploadTask.addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(getApplicationContext(), "Image Upload Failed.\nYou can upload it later!!", Toast.LENGTH_LONG).show();
-                                    pd.dismiss();
-                                    finish();
-                                    startActivity(new Intent(Registration.this, HomeActivity.class));
-                                }
-                            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                @Override
-                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                    imgURL = taskSnapshot.getDownloadUrl().toString();
-                                    databaseReference.child(firebaseAuth.getCurrentUser().getUid()).child("imgURL").setValue(imgURL);
-                                    Toast.makeText(getApplicationContext(), "Image Upload Successful", Toast.LENGTH_LONG).show();
-                                    pd.dismiss();
-                                    finish();
-                                    startActivity(new Intent(Registration.this, HomeActivity.class));
-                                }
-                            });
-
-                        }
+                        pd.dismiss();
+                        finish();
+                        startActivity(new Intent(Registration.this, HomeActivity.class));
                     } else {
                         pd.dismiss();
-                        Toast.makeText(getApplicationContext(), "Network Error", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 }
             });

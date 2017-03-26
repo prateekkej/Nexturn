@@ -75,13 +75,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nexturn.DatabaseUtil;
 import com.nexturn.Fragments.Profile_Fragment;
 import com.nexturn.Fragments.SettingsPage;
+import com.nexturn.ModifiedViews.User_details_card;
 import com.nexturn.ModifiedViews.ourTextView;
 import com.nexturn.R;
+import com.nexturn.User_location;
 import com.nexturn.User_object;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -95,11 +98,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleMap.OnMarkerClickListener, GoogleApiClient.OnConnectionFailedListener {
+public class HomeActivity extends AppCompatActivity implements OnMapReadyCallback, com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public static User_object user_obj;
-    public static ImageView user_image;
+    public static ImageView nav_user_image;
+    public static boolean profilePicChanged;
     private static SupportMapFragment mapFragment;
     final int LOCATION_PERM = 2;
+    public Bitmap img;
+    public byte[] imgdecomp;
     List<User_location> list_for_added;
     private FirebaseAuth firebaseAuth;                        /*Firebase Pointers*/
     private DatabaseReference databaseReference;               /*Firebase Pointers*/
@@ -116,19 +122,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ArrayAdapter<String> abc;
     private ArrayList<String> list;
     private User_location user_location;
-    private Bitmap img;
     private Uri imgURI;
     private GoogleMap googleMap;
-    private byte[] imgdecomp;
     private LatLng myLatLng;
     private boolean isProfileON = false;
     private Location myLocation;
     private LocationRequest locationRequest;
-    private Marker myMarker;
     private LocationManager locationManager;
-    private ByteArrayOutputStream byteArrayOutputStream;
+    private ByteArrayOutputStream byteArrayOutputStream, baos;
     private Map<String, Object> loc_update;
     private User_location addedValue;
+    private User_details_card details_card;
     private GoogleApiClient googleApiClient;
     private LocationSettingsRequest.Builder builder;
     public void location_request() {
@@ -172,9 +176,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionSuspended(int i) {
 
     }
-    public boolean onMarkerClick(Marker marker) {
-        return true;
-    }
+
+
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
         if (myLatLng != null) {
@@ -187,12 +190,21 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         googleMap.setTrafficEnabled(true);
         googleMap.getUiSettings().setZoomControlsEnabled(true);
-        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
-            public boolean onMyLocationButtonClick() {
+            public boolean onMarkerClick(Marker marker) {
+                for (User_location u : list_for_added) {
+                    Log.d("Marker ID:", u.marker.getId() + marker.getId());
+                    if (u.marker.getId().equals(marker.getId())) {
+                        details_card = new User_details_card();
+                        details_card.setUserObject(u);
+                        details_card.show(fm, u.name);
+                    }
+                }
                 return true;
             }
         });
+
     }
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.bar_home, menu);
@@ -201,6 +213,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.exit:
+                location_db.child(firebaseAuth.getCurrentUser().getUid()).removeValue();
                 finish();
                 break;
             case 16908332:
@@ -224,27 +237,20 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 name.setText(user_obj.fname + " " + user_obj.lname);
                 email.setText(user_obj.email);
                 if (user_obj.imgURL != null) {
-                    Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
+                    Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(nav_user_image) {
                         @Override
                         protected void setResource(Bitmap resource) {
                             RoundedBitmapDrawable circularBitmapDrawable =
                                     RoundedBitmapDrawableFactory.create(getResources(), resource);
                             circularBitmapDrawable.setCircular(true);
-                            user_image.setImageDrawable(circularBitmapDrawable);
+                            nav_user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
-                    Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(HomeActivity.user_image) {
-                        @Override
-                        protected void setResource(Bitmap resource) {
-                            RoundedBitmapDrawable circularBitmapDrawable =
-                                    RoundedBitmapDrawableFactory.create(getResources(), resource);
-                            circularBitmapDrawable.setCircular(true);
-                            user_image.setImageDrawable(circularBitmapDrawable);
-                        }
-                    });
+
                 }
-                if (myLocation != null) {
-                    user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL);
+                }
+                if (myLocation != null && user_obj != null) {
+                    user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL, user_obj.mobile, user_obj.fblink);
                     location_db.child(user_obj.uid).setValue(user_location);
                     location_db.orderByChild("lat").startAt(myLocation.getLatitude() - 0.04).endAt(myLocation.getLatitude() + 0.04)
                             .addChildEventListener(new ChildEventListener() {
@@ -315,7 +321,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     });
                 }
                 }
-            }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Toast.makeText(getApplicationContext(), databaseError.toString(), Toast.LENGTH_LONG).show();
@@ -329,22 +335,26 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     protected void onStop() {
         super.onStop();
-        location_db.child(currentUser.getUid()).removeValue();
         googleApiClient.disconnect();
     }
     void deleteEntry(User_location deletedEntry) {
-        deletedEntry.marker.remove();
+        if (deletedEntry != null) {
+            deletedEntry.marker.remove();
+        }
 
     }
     void updateMap(User_location newLocation) {
-        newLocation.marker.setPosition(newLocation.getLatLng());
+        if (newLocation != null) {
+            newLocation.marker.setPosition(newLocation.getLatLng());
+        }
     }
     void addEntryToMap(User_location u) {
-        u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()).title(u.name));
+        u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()));
     }
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        profilePicChanged = false;
         list_for_added = new ArrayList<User_location>();
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
@@ -419,6 +429,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             final CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (result != null) {
             try {
                 img = MediaStore.Images.Media.getBitmap(getContentResolver(), result.getUri());
             } catch (IOException e) {
@@ -434,28 +445,29 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     Toast.makeText(HomeActivity.this, "Image Successfully Uploaded", Toast.LENGTH_SHORT).show();
                     user_obj.imgURL = taskSnapshot.getDownloadUrl().toString();
                     databaseReference.child(currentUser.getUid()).setValue(user_obj);
-                    Glide.with(HomeActivity.this).load(result.getUri()).asBitmap().centerCrop().into(new BitmapImageViewTarget(user_image) {
+                    profilePicChanged = true;
+                    Glide.with(HomeActivity.this).load(imgdecomp).asBitmap().centerCrop().into(new BitmapImageViewTarget(nav_user_image) {
                         @Override
                         protected void setResource(Bitmap resource) {
                             RoundedBitmapDrawable circularBitmapDrawable =
                                     RoundedBitmapDrawableFactory.create(getResources(), resource);
                             circularBitmapDrawable.setCircular(true);
-                            user_image.setImageDrawable(circularBitmapDrawable);
+                            nav_user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
-                    Glide.with(HomeActivity.this).load(result.getUri()).asBitmap().centerCrop().into(new BitmapImageViewTarget(HomeActivity.user_image) {
+                    Glide.with(HomeActivity.this).load(imgdecomp).asBitmap().centerCrop().into(new BitmapImageViewTarget(Profile_Fragment.user_image) {
                         @Override
                         protected void setResource(Bitmap resource) {
                             RoundedBitmapDrawable circularBitmapDrawable =
                                     RoundedBitmapDrawableFactory.create(getResources(), resource);
                             circularBitmapDrawable.setCircular(true);
-                            user_image.setImageDrawable(circularBitmapDrawable);
+                            Profile_Fragment.user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
-                    pro.onResume();
 
                 }
             });
+            }
         }
     }
     public void invite_karo() {
@@ -495,9 +507,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         nav_head = getLayoutInflater().inflate(R.layout.nav_header_main, null);
         name = (ourTextView) nav_head.findViewById(R.id.username_nav);
         email = (ourTextView) nav_head.findViewById(R.id.email_nav);
-        user_image = (ImageView) nav_head.findViewById(R.id.userimage_nav);
+        nav_user_image = (ImageView) nav_head.findViewById(R.id.userimage_nav);
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
-
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
     }
@@ -534,51 +545,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    void signOut() {
-        location_db.child(currentUser.getUid()).removeValue();
-        firebaseAuth.signOut();
+    void signOut() {//DO NOT MODIFY THIS SEQUENCE EVER.
+        location_db.child(firebaseAuth.getCurrentUser().getUid()).removeValue();
         LoginManager.getInstance().logOut();
+        firebaseAuth.signOut();
         finish();
         startActivity(new Intent(this, LoginPage.class));
-    }
-}
-class User_location extends User_object {
-    public String uid, name, imgURL;
-    public double lat, lon;
-    public Marker marker;
-
-    User_location() {
-        uid = "";
-        lat = 0;
-        lon = 0;
-        name = "";
-        imgURL = "";
-        marker = null;
-    }
-
-    User_location(String a, String b, double c, double d, String e) {
-        uid = a;
-        name = b;
-        lat = c;
-        lon = d;
-        imgURL = e;
-    }
-
-    double getLong() {
-        return lon;
-    }
-
-    double getLat() {
-        return lat;
-    }
-
-    LatLng getLatLng() {
-        return new LatLng(lat, lon);
-    }
-
-    @Override
-    public String toString() {
-        return name + " " + uid;
     }
 }
 
