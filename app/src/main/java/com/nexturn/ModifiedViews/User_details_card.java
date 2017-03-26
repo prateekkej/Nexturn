@@ -107,8 +107,9 @@ public class User_details_card extends AppCompatDialogFragment {
                 @Override
                 public void onClick(View view) {
                     Uri uri = Uri.parse("smsto:" + phonestr);
-                    im = new Intent(Intent.ACTION_SENDTO, uri);
-                    im.putExtra("sms_body:", "Hey!!\n Write your lift proposal here..  \n\n\n" + "I am at: " + user.getLatLng().toString());
+                    im = new Intent(Intent.ACTION_SENDTO);
+                    im.setData(uri);
+                    im.putExtra("sms_body", "Hey!!\n Write your lift proposal here..  \n\n\n" + "I am at: " + user.getLatLng().toString());
                     startActivity(im);
                 }
             });
