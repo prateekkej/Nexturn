@@ -12,6 +12,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.facebook.AccessToken;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.Profile;
+import com.facebook.ProfileTracker;
+import com.facebook.login.LoginResult;
+import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -23,10 +31,21 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthCredential;
+import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
+import com.nexturn.DatabaseUtil;
 import com.nexturn.R;
+import com.nexturn.User_object;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private Button login;
@@ -36,6 +55,10 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
     private GoogleSignInOptions gso;
     private GoogleApiClient mGoogleApiClient;
     private SignInButton googleButton;
+    private DatabaseReference databaseReference;
+    private CallbackManager mCallbackManager;
+    private Profile fbProfile;
+    private ProfileTracker fbProfileTracker;
     @Override
     protected void onResume() {
         super.onResume();
@@ -57,7 +80,10 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 // Google Sign In failed, update UI appropriately
                 // ...
             }
+
         }
+        mCallbackManager.onActivityResult(requestCode, resultCode, data);
+
     }
 
     private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
@@ -66,21 +92,40 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            if (firebaseAuth.getCurrentUser() != null) {
+                                final FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+                                databaseReference.child(currentUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.getValue(User_object.class) == null) {
+                                            databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
+                                                    currentUser.getDisplayName(), "", currentUser.getEmail()
+                                                    , "", "", "", "", "", currentUser.getPhotoUrl().toString(), "G"));
+                                        } else {
 
-                        // If sign in fails, display a message to the user. If sign in succeeds
-                        // the auth state listener will be notified and logic to handle the
-                        // signed in user can be handled in the listener.
-                        if (!task.isSuccessful()) {
+                                            databaseReference.removeEventListener(this);
+                                        }
+                                    }
 
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+
+                                finish();
+                                mGoogleApiClient.clearDefaultAccountAndReconnect();
+                                startActivity(new Intent(LoginPage.this, HomeActivity.class));
+                            }
                         }
-                        // ...
                     }
                 });
     }
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -90,16 +135,9 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
         setContentView(R.layout.activity_login_page);
+        signInWithFacebook();
         googleButton = (SignInButton) findViewById(R.id.googleButton);
         firebaseAuth = FirebaseAuth.getInstance();
-        firebaseAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                if (firebaseAuth.getCurrentUser() != null) {
-                    startActivity(new Intent(LoginPage.this, HomeActivity.class));
-                }
-            }
-        });
         googleButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -118,6 +156,85 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         startActivityForResult(signInIntent, 1);
     }
+
+    public void signInWithFacebook() {
+        mCallbackManager = CallbackManager.Factory.create();
+        final LoginButton loginButton = (LoginButton) findViewById(R.id.fbButton);
+        loginButton.setReadPermissions("email", "public_profile");
+        loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                Log.d("FB:", "facebook:onSuccess:" + loginResult);
+                if (Profile.getCurrentProfile() == null) {
+                    fbProfileTracker = new ProfileTracker() {
+                        @Override
+                        protected void onCurrentProfileChanged(Profile profile, Profile profile2) {
+                            // profile2 is the new profile
+                            fbProfile = profile2;
+                            fbProfileTracker.stopTracking();
+                        }
+                    };
+                    // no need to call startTracking() on mProfileTracker
+                    // because it is called by its constructor, internally.
+                } else {
+                    fbProfile = Profile.getCurrentProfile();
+                }
+                handleFacebookAccessToken(loginResult.getAccessToken());
+            }
+
+            @Override
+            public void onCancel() {
+                Log.d("FB:", "facebook:onCancel");
+                // ...
+            }
+
+            @Override
+            public void onError(FacebookException error) {
+                Log.d("FB:", "facebook:onError", error);
+            }
+        });
+    }
+
+    private void handleFacebookAccessToken(AccessToken token) {
+        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        firebaseAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            if (firebaseAuth.getCurrentUser() != null) {
+                                final FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+                                databaseReference.child(currentUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.getValue(User_object.class) == null) {
+                                            databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
+                                                    fbProfile.getFirstName(), fbProfile.getLastName(), currentUser.getEmail()
+                                                    , "", "", "", "", "", fbProfile.getProfilePictureUri(400, 400).toString(), "F"));
+                                        } else {
+                                            databaseReference.removeEventListener(this);
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+
+                                    }
+                                });
+                                finish();
+                                startActivity(new Intent(LoginPage.this, HomeActivity.class));
+                            }
+                        }
+                    }
+                });
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mGoogleApiClient.disconnect();
+    }
+
     public void forgotpass(View v) {
         emailstr = email.getText().toString();
         if (emailstr.isEmpty()) {

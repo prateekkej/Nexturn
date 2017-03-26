@@ -6,7 +6,7 @@ package com.nexturn;
 
 public class User_object {
 
-    public String fname, lname, email, gender, dob, mobile, aadhar, location, uid, imgURL;
+    public String fname, lname, email, gender, signedUpUsing, dob, mobile, aadhar, location, uid, imgURL;
     public boolean isLoggedIn;
 
     public User_object() {
@@ -20,9 +20,11 @@ public class User_object {
         aadhar = "XXXX/XXXX/XXXX";
         imgURL = " ";
         location = "State";
+        isLoggedIn = false;
+        signedUpUsing = "E";
     }
 
-    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR) {
+    public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR, String signUpMethod) {
         fname = fname1;
         lname = lname1;
         uid = uid1;
@@ -33,6 +35,7 @@ public class User_object {
         aadhar = aadhar1;
         imgURL = imgUR;
         location = location1;
+        signedUpUsing = signUpMethod;
     }
 
     @Override

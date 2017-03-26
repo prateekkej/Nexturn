@@ -57,6 +57,7 @@ public class Profile_Fragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 user_obj = dataSnapshot.child(currentUser.getUid()).getValue(User_object.class);
+                if (user_obj != null) {
                 name.setText(user_obj.fname + " " + user_obj.lname);
                 email.setText(user_obj.email);
                 mobile.setText(user_obj.mobile);
@@ -74,6 +75,7 @@ public class Profile_Fragment extends Fragment {
                             user_image.setImageDrawable(circularBitmapDrawable);
                         }
                     });
+                }
                 }
             }
 

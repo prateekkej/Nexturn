@@ -42,6 +42,9 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
+import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -213,10 +216,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onResume() {
         super.onResume();
         loc_update = new HashMap<String, Object>();
-        databaseReference.child(currentUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 user_obj = dataSnapshot.getValue(User_object.class);
+                if (user_obj != null) {
                 name.setText(user_obj.fname + " " + user_obj.lname);
                 email.setText(user_obj.email);
                 if (user_obj.imgURL != null) {
@@ -310,6 +314,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     });
                 }
+                }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -351,7 +356,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         initialize_views();
         insert_data();
         fragments_initialize();
-
         fm.beginTransaction().add(R.id.content_frame, mapFragment, "map").commit();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERM);
@@ -390,11 +394,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         invite_karo();
                         break;
                     case 4:
-                        location_db.child(currentUser.getUid()).removeValue();
-                        firebaseAuth.signOut();
-                        startActivity(new Intent(HomeActivity.this, LoginPage.class));
-                        Toast.makeText(getApplicationContext(), "Logged Out", Toast.LENGTH_LONG).show();
-                        finish();
+                        signOut();
                         break;
                 }
             }
@@ -532,6 +532,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    void signOut() {
+        location_db.child(currentUser.getUid()).removeValue();
+        firebaseAuth.signOut();
+        LoginManager.getInstance().logOut();
+        finish();
+        startActivity(new Intent(this, LoginPage.class));
     }
 }
 class User_location extends User_object {

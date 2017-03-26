@@ -261,7 +261,7 @@ public class Registration extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         uidstr = firebaseAuth.getCurrentUser().getUid();
                         imgURL = "";
-                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL);
+                        user_object = new User_object(uidstr, fnamestr, lnamestr, emailstr, genderstr, dobstr, mobilestr, aadharstr, locationstr, imgURL, "E");
                         databaseReference.child(uidstr).setValue(user_object).addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void aVoid) {

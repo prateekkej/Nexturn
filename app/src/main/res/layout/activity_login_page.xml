@@ -106,8 +106,8 @@
         android:id="@+id/login"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignStart="@+id/imageView2"
         android:layout_below="@+id/loo"
-        android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="25dp"
         android:baselineAligned="false"
@@ -143,6 +143,21 @@
             layout_width="match_parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <view
+            android:id="@+id/fbButton"
+            class="com.facebook.login.widget.LoginButton"
+            id="@+id/view4"
+            layout_width="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:paddingBottom="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="10dp"
+            android:textSize="14sp" />
 
     </LinearLayout>
 
