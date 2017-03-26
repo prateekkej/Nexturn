@@ -16,8 +16,12 @@ import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphRequestAsyncTask;
+import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
+import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
@@ -27,6 +31,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.data.DataBufferObserver;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -44,11 +49,15 @@ import com.nexturn.DatabaseUtil;
 import com.nexturn.R;
 import com.nexturn.User_object;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnConnectionFailedListener {
     private Button login;
+    private String dob, gender, mobile, location;
     private String emailstr, passstr;
     private EditText email, pass;
     private FirebaseAuth firebaseAuth;
@@ -125,6 +134,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        LoginManager.getInstance().logOut();
         databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -160,10 +170,10 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
     public void signInWithFacebook() {
         mCallbackManager = CallbackManager.Factory.create();
         final LoginButton loginButton = (LoginButton) findViewById(R.id.fbButton);
-        loginButton.setReadPermissions("email", "public_profile");
+        loginButton.setReadPermissions("email", "public_profile", "user_birthday", "user_location");
         loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
             @Override
-            public void onSuccess(LoginResult loginResult) {
+            public void onSuccess(final LoginResult loginResult) {
                 Log.d("FB:", "facebook:onSuccess:" + loginResult);
                 if (Profile.getCurrentProfile() == null) {
                     fbProfileTracker = new ProfileTracker() {
@@ -172,6 +182,23 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                             // profile2 is the new profile
                             fbProfile = profile2;
                             fbProfileTracker.stopTracking();
+                            GraphRequest graphRequest = GraphRequest.newMeRequest(loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                                @Override
+                                public void onCompleted(JSONObject object, GraphResponse response) {
+                                    try {
+                                        gender = object.getString("gender");
+                                        dob = object.getString("birthday");
+                                        location = object.getJSONObject("location").getString("name");
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            });
+                            Bundle parameters = new Bundle();
+                            parameters.putString("fields", "gender,birthday,location");
+                            graphRequest.setParameters(parameters);
+                            graphRequest.executeAsync();
                         }
                     };
                     // no need to call startTracking() on mProfileTracker
@@ -179,13 +206,13 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                 } else {
                     fbProfile = Profile.getCurrentProfile();
                 }
+
                 handleFacebookAccessToken(loginResult.getAccessToken());
             }
 
             @Override
             public void onCancel() {
                 Log.d("FB:", "facebook:onCancel");
-                // ...
             }
 
             @Override
@@ -210,8 +237,14 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                         if (dataSnapshot.getValue(User_object.class) == null) {
                                             databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
                                                     fbProfile.getFirstName(), fbProfile.getLastName(), currentUser.getEmail()
-                                                    , "", "", "", "", "", fbProfile.getProfilePictureUri(400, 400).toString(), "F"));
+                                                    , gender, dob, "", "", location, fbProfile.getProfilePictureUri(400, 400).toString(), "F"));
                                         } else {
+                                            Map<String, Object> update_user = new HashMap<String, Object>();
+                                            update_user.put("gender", gender);
+                                            update_user.put("location", location);
+                                            update_user.put("dob", dob);
+                                            update_user.put("imgURL", fbProfile.getProfilePictureUri(400, 400).toString());
+                                            databaseReference.child(currentUser.getUid()).updateChildren(update_user);
                                             databaseReference.removeEventListener(this);
                                         }
                                     }
