@@ -63,8 +63,9 @@ public class User_details_card extends AppCompatDialogFragment {
         name.setText(namestr);
         phone.setText(phonestr);
         goingTo.setText(goingTostr);
-        if (user.imgURL != null && !user.imgURL.equals("")) {
-            Glide.with(getActivity()).load(user.imgURL).asBitmap().fitCenter().into(new BitmapImageViewTarget(user_image) {
+        if (user.imgURL != null || !user.imgURL.equals("")) {
+            try {
+                Glide.with(getActivity()).load(user.imgURL).asBitmap().fitCenter().into(new BitmapImageViewTarget(user_image) {
                 @Override
                 protected void setResource(Bitmap resource) {
                     RoundedBitmapDrawable circularBitmapDrawable =
@@ -72,7 +73,10 @@ public class User_details_card extends AppCompatDialogFragment {
                     circularBitmapDrawable.setCircular(true);
                     user_image.setImageDrawable(circularBitmapDrawable);
                 }
-            });
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         fblink.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -92,35 +96,45 @@ public class User_details_card extends AppCompatDialogFragment {
                 }
             }
         });
-        if (!phonestr.isEmpty()) {
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    if (!phonestr.isEmpty()) {
                     im = new Intent(Intent.ACTION_DIAL);
                     Uri call = Uri.parse("tel:" + phonestr);
                     im.setData(call);
                     startActivity(im);
+                    } else {
+                        new AlertDialog.Builder(getActivity()).setMessage("The person has not yet registered/verified his/her Phone Number").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
+                    }
                 }
             });
             message.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Uri uri = Uri.parse("smsto:" + phonestr);
+                    if (!phonestr.isEmpty()) {
+                        Uri uri = Uri.parse("smsto:" + phonestr);
                     im = new Intent(Intent.ACTION_SENDTO);
                     im.setData(uri);
                     im.putExtra("sms_body", "Hey!!\n Write your lift proposal here..  \n\n\n" + "I am at: " + user.getLatLng().toString());
-                    startActivity(im);
+                        startActivity(im);
+                    } else {
+                        new AlertDialog.Builder(getActivity()).setMessage("The person has not yet registered/verified his/her Phone Number").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                dialogInterface.dismiss();
+                            }
+                        }).show();
+                    }
                 }
             });
-        } else {
-            new AlertDialog.Builder(getActivity()).setMessage("The person has not yet registered/verified his/her Phone Number").setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                }
-            }).show();
-        }
+
+
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

@@ -23,6 +23,17 @@ public class User_location {
         goingTo = null;
     }
 
+    public User_location(User_location obj) {
+        uid = obj.uid;
+        name = obj.name;
+        lat = obj.lat;
+        lon = obj.lon;
+        imgURL = obj.imgURL;
+        phone = obj.phone;
+
+        fblink = obj.fblink;
+
+    }
     public User_location(String a, String b, double c, double d, String e, String f, String g) {
         uid = a;
         name = b;
@@ -41,6 +52,10 @@ public class User_location {
 
     public double getLat() {
         return lat;
+    }
+
+    public String getUid() {
+        return uid;
     }
 
     public LatLng getLatLng() {

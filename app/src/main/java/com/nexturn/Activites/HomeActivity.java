@@ -103,10 +103,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static ImageView nav_user_image;
     public static boolean profilePicChanged;
     private static SupportMapFragment mapFragment;
+    private static java.util.concurrent.CopyOnWriteArrayList<User_location> list_for_added;
     final int LOCATION_PERM = 2;
     public Bitmap img;
     public byte[] imgdecomp;
-    List<User_location> list_for_added;
     private FirebaseAuth firebaseAuth;                        /*Firebase Pointers*/
     private DatabaseReference databaseReference;               /*Firebase Pointers*/
     private DatabaseReference location_db;                     /*Firebase Pointers*/
@@ -131,7 +131,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private LocationManager locationManager;
     private ByteArrayOutputStream byteArrayOutputStream, baos;
     private Map<String, Object> loc_update;
-    private User_location addedValue;
+    private User_location addedValue, removedValue, changedValue;
     private User_details_card details_card;
     private GoogleApiClient googleApiClient;
     private LocationSettingsRequest.Builder builder;
@@ -176,8 +176,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onConnectionSuspended(int i) {
 
     }
-
-
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
         if (myLatLng != null) {
@@ -204,6 +202,15 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return true;
             }
         });
+        googleMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                if (myLatLng != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
+                }
+                return true;
+            }
+        });
 
     }
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -213,7 +220,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.exit:
-                location_db.child(firebaseAuth.getCurrentUser().getUid()).removeValue();
+                list_for_added.clear();
+                location_db.child(currentUser.getUid()).removeValue();
                 finish();
                 break;
             case 16908332:
@@ -226,101 +234,33 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return true;
     }
-    protected void onResume() {
-        super.onResume();
-        loc_update = new HashMap<String, Object>();
+
+    protected void onStart() {
+        super.onStart();
+        googleApiClient.connect();
         databaseReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 user_obj = dataSnapshot.getValue(User_object.class);
                 if (user_obj != null) {
-                name.setText(user_obj.fname + " " + user_obj.lname);
-                email.setText(user_obj.email);
-                if (user_obj.imgURL != null) {
-                    Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(nav_user_image) {
-                        @Override
-                        protected void setResource(Bitmap resource) {
-                            RoundedBitmapDrawable circularBitmapDrawable =
-                                    RoundedBitmapDrawableFactory.create(getResources(), resource);
-                            circularBitmapDrawable.setCircular(true);
-                            nav_user_image.setImageDrawable(circularBitmapDrawable);
-                        }
-                    });
-
-                }
-                }
-                if (myLocation != null && user_obj != null) {
-                    user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname, myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL, user_obj.mobile, user_obj.fblink);
-                    location_db.child(user_obj.uid).setValue(user_location);
-                    location_db.orderByChild("lat").startAt(myLocation.getLatitude() - 0.04).endAt(myLocation.getLatitude() + 0.04)
-                            .addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            if (dataSnapshot.getValue(User_location.class).uid == user_location.uid) {
-                            } else {
-                                addedValue = dataSnapshot.getValue(User_location.class);
-                                addEntryToMap(addedValue);
-                                list_for_added.add(addedValue);
+                    name.setText(user_obj.fname + " " + user_obj.lname);
+                    email.setText(user_obj.email);
+                    if (user_obj.imgURL != null) {
+                        Glide.with(getApplicationContext()).load(user_obj.imgURL).asBitmap().centerCrop().into(new BitmapImageViewTarget(nav_user_image) {
+                            @Override
+                            protected void setResource(Bitmap resource) {
+                                RoundedBitmapDrawable circularBitmapDrawable =
+                                        RoundedBitmapDrawableFactory.create(getResources(), resource);
+                                circularBitmapDrawable.setCircular(true);
+                                nav_user_image.setImageDrawable(circularBitmapDrawable);
                             }
-                        }
+                        });
 
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                            User_location changedObject = dataSnapshot.getValue(User_location.class);
-                            Log.v("ffff", dataSnapshot.toString());
-                            if (changedObject.uid == user_location.uid) {
-                            } else {
-                                User_location temp = new User_location();
-                                for (User_location u : list_for_added) {
-                                    if (u.uid == changedObject.uid) {
-                                        u.lon = changedObject.lon;
-                                        u.lat = changedObject.lat;
-                                        temp = u;
-                                    }
-                                }
-                                updateMap(temp);
-                            }
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-                            User_location changedObject = dataSnapshot.getValue(User_location.class);
-                            Log.v("ffff", dataSnapshot.toString());
-                            if (changedObject.uid == user_location.uid) {
-                            } else {
-                                User_location temp = new User_location();
-                                for (User_location u : list_for_added) {
-                                    if (u.uid == changedObject.uid) {
-                                        u.lon = changedObject.lon;
-                                        u.lat = changedObject.lat;
-                                        temp = u;
-                                    }
-                                }
-                                deleteEntry(temp);
-                                list_for_added.remove(temp);
-                            }
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                        }
-                    });
-                    googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
-                        @Override
-                        public void onMyLocationChange(Location location) {
-                            user_location.lat = location.getLatitude();
-                            user_location.lon = location.getLongitude();
-                            loc_update.put("lat", user_location.getLat());
-                            loc_update.put("lon", user_location.getLong());
-                            location_db.child(user_location.uid).updateChildren(loc_update);
-                        }
-                    });
+                    }
+                    Log.v("LLLL", user_obj.toString());
+                    mapKaKaam();
                 }
-                }
+            }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -329,22 +269,17 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         });
 
     }
-    protected void onStart() {
-        super.onStart();
-        googleApiClient.connect();
-    }
     protected void onStop() {
         super.onStop();
         googleApiClient.disconnect();
     }
     void deleteEntry(User_location deletedEntry) {
-        if (deletedEntry != null) {
+        if (deletedEntry.marker != null) {
             deletedEntry.marker.remove();
         }
-
     }
     void updateMap(User_location newLocation) {
-        if (newLocation != null) {
+        if (newLocation.marker != null) {
             newLocation.marker.setPosition(newLocation.getLatLng());
         }
     }
@@ -355,7 +290,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         profilePicChanged = false;
-        list_for_added = new ArrayList<User_location>();
+        list_for_added = new java.util.concurrent.CopyOnWriteArrayList<User_location>();
         googleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -409,13 +344,12 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
         });
+
     }
     void fragments_initialize() {
         fm = getSupportFragmentManager();
         pro = new Profile_Fragment();
         mapFragment = new SupportMapFragment();
-        settings = new SettingsPage();
-
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -465,6 +399,18 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     });
 
+                }
+            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    Profile_Fragment.user_image.setImageResource(R.drawable.ic_person_outline_black_24dp);
+                    nav_user_image.setImageResource(R.drawable.ic_person_outline_black_24dp);
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Toast.makeText(getApplicationContext(), "Image Upload failed. Try Again", Toast.LENGTH_LONG).show();
+                    e.printStackTrace();
                 }
             });
             }
@@ -520,6 +466,85 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         location_db = FirebaseDatabase.getInstance().getReference("users_recent_location");
         location_db.keepSynced(true);
     }
+
+    void mapKaKaam() {
+        loc_update = new HashMap<String, Object>();
+        if (myLocation == null) {
+            Log.v("fff", "Location is null");
+        }
+        if (myLocation != null && user_obj != null) {
+            user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname,
+                    myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL, user_obj.mobile, user_obj.fblink);
+            location_db.child(user_obj.uid).setValue(user_location);
+            location_db.orderByChild("lat").startAt(myLocation.getLatitude() - 0.04).endAt(myLocation.getLatitude() + 0.04)
+                    .addChildEventListener(new ChildEventListener() {
+                        @Override
+                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                            addedValue = dataSnapshot.getValue(User_location.class);
+                            if (addedValue.uid.equals(currentUser.getUid())) {
+                                Log.d("added", addedValue.uid + "  " + currentUser.getUid());
+                            } else {
+                                Log.d("addedNew", addedValue.uid + "  " + currentUser.getUid());
+                                User_location temp = new User_location(addedValue);
+                                addEntryToMap(temp);
+                                list_for_added.add(temp);
+                            }
+                        }
+
+                        @Override
+                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                            changedValue = dataSnapshot.getValue(User_location.class);
+                            if (changedValue.getUid().equals(currentUser.getUid())) {
+                                Log.d("Changed:", changedValue.toString());
+                            } else {
+                                for (User_location u : list_for_added) {
+                                    if (u.getUid().equals(changedValue.getUid())) {
+                                        Log.d("ChangedLast:", changedValue.toString());
+                                        u.lat = changedValue.getLat();
+                                        u.lon = changedValue.getLong();
+                                        updateMap(u);
+                                    }
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onChildRemoved(DataSnapshot dataSnapshot) {
+                            removedValue = dataSnapshot.getValue(User_location.class);
+                            if (removedValue.uid.equals(currentUser.getUid())) {
+                                Log.d("Removed:", removedValue.toString());
+                            } else {
+                                for (User_location u : list_for_added) {
+                                    if (u.uid.equals(removedValue.uid)) {
+                                        Log.d("RemovedLast:", removedValue.toString());
+                                        deleteEntry(u);
+                                        list_for_added.remove(u);
+                                    }
+                                }
+
+                            }
+                        }
+
+                        @Override
+                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+                    });
+            googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+                @Override
+                public void onMyLocationChange(Location location) {
+                    user_location.lat = location.getLatitude();
+                    user_location.lon = location.getLongitude();
+                    loc_update.put("lat", user_location.getLat());
+                    loc_update.put("lon", user_location.getLong());
+                    location_db.child(currentUser.getUid()).updateChildren(loc_update);
+                }
+            });
+        }
+    }
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERM && (grantResults[0] == -1 || grantResults[1] == -1)) {
@@ -538,7 +563,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             myLocation = location;
             myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
             mapFragment.getMapAsync(this);
-            this.onResume();
+            mapKaKaam();
         }
     }
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
