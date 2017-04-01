@@ -54,6 +54,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public class Registration extends AppCompatActivity {
+    public static TextView dob;
     final int STORAGE_PERM = 1;
     final int LOCATION_PERM = 2;
     boolean pass_visible = false;
@@ -68,7 +69,6 @@ public class Registration extends AppCompatActivity {
     private PopupMenu pop;
     private RadioButton gen;
     private RadioGroup gender;
-    private TextView dob;
     private Uri tempURI, imgURI;
     private User_object user_object;
     private FirebaseAuth firebaseAuth;
@@ -110,7 +110,9 @@ public class Registration extends AppCompatActivity {
     }
     public void setState_list(View v) {
         DatePickerFrag df = new DatePickerFrag();
+        df.setCaller(true);
         df.show(getSupportFragmentManager(), "datepicker");
+
     }
     public void passs(View v) {
         if (pass_visible == false) {
@@ -253,7 +255,6 @@ public class Registration extends AppCompatActivity {
             pd.setTitle("Registering User....");
             pd.setMessage("Please wait \nWhile we get you registered...");
             pd.show();
-
             firebaseAuth.createUserWithEmailAndPassword(emailstr, passstr).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
                 public void onComplete(@NonNull Task<AuthResult> task) {
@@ -299,9 +300,7 @@ public class Registration extends AppCompatActivity {
                                 pd.dismiss();
                             }
                         });
-                        pd.dismiss();
-                        finish();
-                        startActivity(new Intent(Registration.this, HomeActivity.class));
+
                     } else {
                         pd.dismiss();
                         Toast.makeText(getApplicationContext(), task.getException().getMessage(), Toast.LENGTH_LONG).show();

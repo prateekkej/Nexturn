@@ -89,6 +89,11 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
     private void firebaseAuthWithGoogle(final GoogleSignInAccount acct) {
         AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        final ProgressDialog pd = new ProgressDialog(this);
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.setTitle("Google Sign-in");
+        pd.setMessage("Logging you in...");
+        pd.show();
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -103,10 +108,12 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                             databaseReference.child(currentUser.getUid()).setValue(new User_object(currentUser.getUid(),
                                                     currentUser.getDisplayName(), "", currentUser.getEmail()
                                                     , "", "", "", "", "", currentUser.getPhotoUrl().toString(), "G", null));
+                                            pd.dismiss();
                                         } else {
                                             Map<String, Object> update_map = new HashMap<String, Object>();
                                             update_map.put("gg", 1);
                                             databaseReference.child(currentUser.getUid()).updateChildren(update_map);
+                                            pd.dismiss();
                                             databaseReference.removeEventListener(this);
                                         }
                                     }
@@ -116,11 +123,14 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
                                     }
                                 });
-
+                                pd.dismiss();
                                 finish();
                                 mGoogleApiClient.clearDefaultAccountAndReconnect();
                                 startActivity(new Intent(LoginPage.this, HomeActivity.class));
                             }
+                        } else {
+                            pd.dismiss();
+                            Toast.makeText(getApplicationContext(), "Sign in with Google Failed.", Toast.LENGTH_LONG).show();
                         }
                     }
                 });
@@ -219,6 +229,11 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
     private void handleFacebookAccessToken(AccessToken token) {
         AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+        final ProgressDialog pd = new ProgressDialog(this);
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.setTitle("Facebook Sign-in");
+        pd.setMessage("Logging you in...");
+        pd.show();
         firebaseAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -234,6 +249,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                                     fbProfile.getFirstName(), fbProfile.getLastName(), currentUser.getEmail()
                                                     , gender, dob, "", "", location, fbProfile.getProfilePictureUri(400, 400).toString(), "F",
                                                     fbProfile.getLinkUri().toString()));
+                                            pd.dismiss();
                                         } else {
                                             Map<String, Object> update_user = new HashMap<String, Object>();
                                             update_user.put("gender", gender);
@@ -243,6 +259,7 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
                                             update_user.put("fblink", fbProfile.getLinkUri().toString());
                                             update_user.put("imgURL", fbProfile.getProfilePictureUri(400, 400).toString());
                                             databaseReference.child(currentUser.getUid()).updateChildren(update_user);
+                                            pd.dismiss();
                                             databaseReference.removeEventListener(this);
                                         }
                                     }
@@ -252,9 +269,14 @@ public class LoginPage extends AppCompatActivity implements GoogleApiClient.OnCo
 
                                     }
                                 });
+                                pd.dismiss();
+
                                 finish();
                                 startActivity(new Intent(LoginPage.this, HomeActivity.class));
                             }
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Sign in with Facebook failed.", Toast.LENGTH_LONG).show();
+                            pd.dismiss();
                         }
                     }
                 });

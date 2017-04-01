@@ -19,4 +19,15 @@
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         app:srcCompat="@drawable/splash" />
+
+    <com.nexturn.ModifiedViews.ourTextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imageView3"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="30dp"
+        android:text="Destination , not so far..."
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large.Inverse"
+        android:textSize="30sp" />
 </RelativeLayout>

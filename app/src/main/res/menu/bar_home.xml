@@ -3,8 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/goingButton"
+        android:title="Going to--"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/exit"
         android:showAsAction="ifRoom"
         android:title="Exit"
         app:showAsAction="always" />
+
 </menu>

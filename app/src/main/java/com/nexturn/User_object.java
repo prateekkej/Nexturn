@@ -49,6 +49,27 @@ public class User_object {
         }
     }
 
+    public User_object(User_object obj) {
+        fname = obj.fname;
+        lname = obj.lname;
+        uid = obj.uid;
+        email = obj.email;
+        gender = obj.gender;
+        dob = obj.dob;
+        mobile = obj.mobile;
+        aadhar = obj.aadhar;
+        imgURL = obj.imgURL;
+        location = obj.location;
+        signedUpUsing = obj.signedUpUsing;
+        if (signedUpUsing.equals("G")) {
+            gg = 1;
+        } else if (signedUpUsing.equals("E")) {
+            em = 1;
+        } else if (signedUpUsing.equals("F")) {
+            fb = 1;
+            fblink = obj.fblink;
+        }
+    }
     @Override
     public String toString() {
         return fname + lname + email + gender + dob + mobile + aadhar + location + uid;

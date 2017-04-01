@@ -25,6 +25,7 @@ import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -56,6 +60,9 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -80,6 +87,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.nexturn.DatabaseUtil;
 import com.nexturn.Fragments.Profile_Fragment;
+import com.nexturn.Fragments.Promesride;
 import com.nexturn.Fragments.SettingsPage;
 import com.nexturn.ModifiedViews.User_details_card;
 import com.nexturn.ModifiedViews.ourTextView;
@@ -102,6 +110,11 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static User_object user_obj;
     public static ImageView nav_user_image;
     public static boolean profilePicChanged;
+    public static DatabaseReference location_db;/*Firebase Pointers*/
+    public static StorageReference storageReference;/*Firebase Pointers*/
+    public static DatabaseReference messagesReference;
+    public static FirebaseUser currentUser;                          /*Firebase Pointers*/
+    public static ActionBar actionBar;
     private static SupportMapFragment mapFragment;
     private static java.util.concurrent.CopyOnWriteArrayList<User_location> list_for_added;
     final int LOCATION_PERM = 2;
@@ -109,10 +122,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     public byte[] imgdecomp;
     private FirebaseAuth firebaseAuth;                        /*Firebase Pointers*/
     private DatabaseReference databaseReference;               /*Firebase Pointers*/
-    private DatabaseReference location_db;                     /*Firebase Pointers*/
-    private StorageReference storageReference;                 /*Firebase Pointers*/
-    private FirebaseUser currentUser;                          /*Firebase Pointers*/
-    private Fragment pro, settings;
+    private Fragment pro;
     private FragmentManager fm;                                 /*View*/
     private ListView list_drawer;                               /*View*/
     private View nav_head;                                      /*View*/
@@ -121,6 +131,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private DrawerLayout drawerLayout;                          /*View*/
     private ArrayAdapter<String> abc;
     private ArrayList<String> list;
+    private AlertDialog about;
     private User_location user_location;
     private Uri imgURI;
     private GoogleMap googleMap;
@@ -135,9 +146,10 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     private User_details_card details_card;
     private GoogleApiClient googleApiClient;
     private LocationSettingsRequest.Builder builder;
+    private ChildEventListener mapListener;
     public void location_request() {
         locationRequest = new LocationRequest();
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY | LocationRequest.PRIORITY_HIGH_ACCURACY);
         builder = new LocationSettingsRequest.Builder();
         builder.addLocationRequest(locationRequest);
         PendingResult<LocationSettingsResult> result =
@@ -153,7 +165,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         // requests here
                         break;
                     case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-
+                        if (!locationSettingsStates.isLocationUsable()) {
                         new AlertDialog.Builder(HomeActivity.this).setTitle("Location Services not found/enabled").setMessage("Please enable Location Services from Settings to enable full functionality of app.")
                                 .setCancelable(false).setPositiveButton("Gotcha", new DialogInterface.OnClickListener() {
                             @Override
@@ -162,6 +174,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                                 startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), LOCATION_PERM + 1);
                             }
                         }).show();
+                        }
                         break;
                 }
             }
@@ -178,6 +191,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void onMapReady(final GoogleMap googleMap) {
         this.googleMap = googleMap;
+
         if (myLatLng != null) {
             googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng, 15));
         }
@@ -197,6 +211,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         details_card = new User_details_card();
                         details_card.setUserObject(u);
                         details_card.show(fm, u.name);
+                        break;
                     }
                 }
                 return true;
@@ -231,6 +246,36 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                     drawerLayout.openDrawer(Gravity.LEFT);
                 }
                 break;
+            case R.id.goingButton:
+                View v = getLayoutInflater().inflate(R.layout.goingto_layout, null, false);
+                Button cancel = (Button) v.findViewById(R.id.cancelGoingTo);
+                Button update = (Button) v.findViewById(R.id.updateGoingTo);
+                Button reset = (Button) v.findViewById(R.id.resetGoingTo);
+                final EditText goingtoText = (EditText) v.findViewById(R.id.goingto_text);
+                final AlertDialog goingTo = new AlertDialog.Builder(this).setView(v).create();
+                goingTo.show();
+                update.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Toast.makeText(getApplicationContext(), goingtoText.getText().toString(), Toast.LENGTH_LONG).show();
+                    }
+                });
+                reset.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        goingtoText.setText("");
+                    }
+                });
+
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        goingTo.dismiss();
+                    }
+                });
+
+
+                break;
         }
         return true;
     }
@@ -238,7 +283,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onStart() {
         super.onStart();
         googleApiClient.connect();
-        databaseReference.child(firebaseAuth.getCurrentUser().getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.child(firebaseAuth.getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 user_obj = dataSnapshot.getValue(User_object.class);
@@ -264,7 +309,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Toast.makeText(getApplicationContext(), databaseError.toString(), Toast.LENGTH_LONG).show();
             }
         });
 
@@ -284,7 +328,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     void addEntryToMap(User_location u) {
-        u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()));
+        u.marker = googleMap.addMarker(new MarkerOptions().position(u.getLatLng()).title(u.goingTo));
     }
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -308,7 +352,8 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             myLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
             mapFragment.getMapAsync(this);
         }
-        getSupportActionBar().setTitle("Home");
+        View x = getLayoutInflater().inflate(R.layout.about_layout, null);
+        about = new AlertDialog.Builder(this).setView(x).create();
         list_drawer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -339,6 +384,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         invite_karo();
                         break;
                     case 4:
+                        about.show();
+                        break;
+                    case 5:
                         signOut();
                         break;
                 }
@@ -348,7 +396,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     void fragments_initialize() {
         fm = getSupportFragmentManager();
-        pro = new Profile_Fragment();
+        pro = new Promesride();
         mapFragment = new SupportMapFragment();
     }
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -378,7 +426,9 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                     Toast.makeText(HomeActivity.this, "Image Successfully Uploaded", Toast.LENGTH_SHORT).show();
                     user_obj.imgURL = taskSnapshot.getDownloadUrl().toString();
-                    databaseReference.child(currentUser.getUid()).setValue(user_obj);
+                    Map<String, Object> updateImage = new HashMap<String, Object>();
+                    updateImage.put("imgURL", user_obj.imgURL);
+                    databaseReference.child(currentUser.getUid()).updateChildren(updateImage);
                     profilePicChanged = true;
                     Glide.with(HomeActivity.this).load(imgdecomp).asBitmap().centerCrop().into(new BitmapImageViewTarget(nav_user_image) {
                         @Override
@@ -399,6 +449,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                     });
 
+
                 }
             }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -417,15 +468,19 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
     public void invite_karo() {
+        if (myLocation != null) {
         Intent share = new Intent(Intent.ACTION_SEND);
-        share.putExtra(Intent.EXTRA_TEXT, "Hey!! Check out this new App!!\n \n" + "link");
+            share.putExtra(Intent.EXTRA_TEXT, "Hey!! \n" + user_obj.fname + " " + user_obj.lname + " location is :" +
+                    "http://maps.google.com/maps?daddr=" + user_location.getLat() + "," + user_location.getLong());
         share.setType("text/plain");
         startActivity(Intent.createChooser(share, "Share app to..."));
+        }
     }
     void insert_data() {
         list.add("Home");
         list.add("Profile View");
-        list.add("Share");
+        list.add("Share my location");
+        list.add("About");
         list.add("Log out");
         list_drawer.addHeaderView(nav_head);
         list_drawer.setAdapter(abc);
@@ -442,7 +497,6 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
-                getSupportActionBar().setTitle("Home");
                 invalidateOptionsMenu();
             }
         };
@@ -454,19 +508,87 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
         name = (ourTextView) nav_head.findViewById(R.id.username_nav);
         email = (ourTextView) nav_head.findViewById(R.id.email_nav);
         nav_user_image = (ImageView) nav_head.findViewById(R.id.userimage_nav);
+        actionBar = getSupportActionBar();
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_drawer);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setTitle("Home");
+
     }
     void firebase_init() {
         databaseReference = DatabaseUtil.getDatabase().getReference("users_info");
+        messagesReference = DatabaseUtil.getDatabase().getReference("users_messages");
         firebaseAuth = FirebaseAuth.getInstance();
         currentUser = firebaseAuth.getCurrentUser();
         storageReference = FirebaseStorage.getInstance().getReference();
         location_db = FirebaseDatabase.getInstance().getReference("users_recent_location");
         location_db.keepSynced(true);
+        define_maplis();
     }
 
+    void define_maplis() {
+        mapListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                addedValue = dataSnapshot.getValue(User_location.class);
+                if (addedValue.uid.equals(currentUser.getUid())) {
+                    Log.d("added", addedValue.uid + "  " + currentUser.getUid());
+                } else {
+                    Log.d("addedNew", addedValue.uid + " N/O " + currentUser.getUid());
+                    User_location temp = new User_location(addedValue);
+                    addEntryToMap(temp);
+                    list_for_added.add(temp);
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                changedValue = dataSnapshot.getValue(User_location.class);
+                if (changedValue.getUid().equals(currentUser.getUid())) {
+                    Log.d("Changed:", changedValue.toString());
+                } else {
+                    for (User_location u : list_for_added) {
+                        if (u.getUid().equals(changedValue.getUid())) {
+                            Log.d("ChangedLast:", changedValue.toString());
+                            u.lat = changedValue.getLat();
+                            u.lon = changedValue.getLong();
+                            updateMap(u);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                removedValue = dataSnapshot.getValue(User_location.class);
+                if (removedValue.uid.equals(currentUser.getUid())) {
+                    Log.d("Removed:", removedValue.toString());
+                } else {
+                    for (User_location u : list_for_added) {
+                        if (u.uid.equals(removedValue.uid)) {
+                            Log.d("RemovedLast:", removedValue.toString());
+                            deleteEntry(u);
+                            list_for_added.remove(u);
+                        }
+                    }
+
+                }
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+    }
+
+    void updaterforSearchArea(Location location) {
+        location_db.orderByChild("lat").startAt(location.getLatitude() - 0.04).endAt(location.getLatitude() + 0.04)
+                .addChildEventListener(mapListener);
+    }
     void mapKaKaam() {
         loc_update = new HashMap<String, Object>();
         if (myLocation == null) {
@@ -476,63 +598,7 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
             user_location = new User_location(user_obj.uid, user_obj.fname + " " + user_obj.lname,
                     myLocation.getLatitude(), myLocation.getLongitude(), user_obj.imgURL, user_obj.mobile, user_obj.fblink);
             location_db.child(user_obj.uid).setValue(user_location);
-            location_db.orderByChild("lat").startAt(myLocation.getLatitude() - 0.04).endAt(myLocation.getLatitude() + 0.04)
-                    .addChildEventListener(new ChildEventListener() {
-                        @Override
-                        public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                            addedValue = dataSnapshot.getValue(User_location.class);
-                            if (addedValue.uid.equals(currentUser.getUid())) {
-                                Log.d("added", addedValue.uid + "  " + currentUser.getUid());
-                            } else {
-                                Log.d("addedNew", addedValue.uid + "  " + currentUser.getUid());
-                                User_location temp = new User_location(addedValue);
-                                addEntryToMap(temp);
-                                list_for_added.add(temp);
-                            }
-                        }
-
-                        @Override
-                        public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                            changedValue = dataSnapshot.getValue(User_location.class);
-                            if (changedValue.getUid().equals(currentUser.getUid())) {
-                                Log.d("Changed:", changedValue.toString());
-                            } else {
-                                for (User_location u : list_for_added) {
-                                    if (u.getUid().equals(changedValue.getUid())) {
-                                        Log.d("ChangedLast:", changedValue.toString());
-                                        u.lat = changedValue.getLat();
-                                        u.lon = changedValue.getLong();
-                                        updateMap(u);
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onChildRemoved(DataSnapshot dataSnapshot) {
-                            removedValue = dataSnapshot.getValue(User_location.class);
-                            if (removedValue.uid.equals(currentUser.getUid())) {
-                                Log.d("Removed:", removedValue.toString());
-                            } else {
-                                for (User_location u : list_for_added) {
-                                    if (u.uid.equals(removedValue.uid)) {
-                                        Log.d("RemovedLast:", removedValue.toString());
-                                        deleteEntry(u);
-                                        list_for_added.remove(u);
-                                    }
-                                }
-
-                            }
-                        }
-
-                        @Override
-                        public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                        }
-                    });
+            updaterforSearchArea(myLocation);
             googleMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
                 @Override
                 public void onMyLocationChange(Location location) {
@@ -568,6 +634,14 @@ public class HomeActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        Toast.makeText(getApplicationContext(), "Please use Exit button to exit.", Toast.LENGTH_LONG).show();
+        if (isProfileON) {
+            pro.onResume();
+        }
     }
 
     void signOut() {//DO NOT MODIFY THIS SEQUENCE EVER.
