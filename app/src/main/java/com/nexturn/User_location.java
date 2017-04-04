@@ -11,6 +11,8 @@ public class User_location {
     public String uid, name, imgURL, phone, fblink, goingTo;
     public double lat, lon;
     public Marker marker;
+    public boolean phoneVisible;
+    public int em, gg, fb;
 
     public User_location() {
         uid = "";
@@ -30,12 +32,17 @@ public class User_location {
         lon = obj.lon;
         imgURL = obj.imgURL;
         phone = obj.phone;
-
         fblink = obj.fblink;
-
+        goingTo = obj.goingTo;
+        phoneVisible = obj.phoneVisible;
+        this.em = obj.em;
+        this.fb = obj.fb;
+        this.gg = obj.gg;
     }
-    public User_location(String a, String b, double c, double d, String e, String f, String g) {
+
+    public User_location(String a, String b, double c, double d, String e, String f, String g, boolean h, int em, int gg, int fb) {
         uid = a;
+        goingTo = null;
         name = b;
         lat = c;
         lon = d;
@@ -44,6 +51,26 @@ public class User_location {
         if (g != null) {
             fblink = g;
         }
+        phoneVisible = h;
+        this.em = em;
+        this.fb = fb;
+        this.gg = gg;
+    }
+
+    public void copyAll(User_location obj) {
+        this.uid = obj.uid;
+        this.name = obj.name;
+        this.lat = obj.lat;
+        this.lon = obj.lon;
+        this.imgURL = obj.imgURL;
+        this.phone = obj.phone;
+        this.fblink = obj.fblink;
+        this.goingTo = obj.goingTo;
+        this.phoneVisible = obj.phoneVisible;
+        this.em = obj.em;
+        this.fb = obj.fb;
+        this.gg = obj.gg;
+
     }
 
     public double getLong() {
@@ -64,6 +91,6 @@ public class User_location {
 
     @Override
     public String toString() {
-        return name + " " + uid;
+        return name + " " + goingTo;
     }
 }

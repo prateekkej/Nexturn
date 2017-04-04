@@ -8,6 +8,7 @@ public class User_object {
 
     public String fname, lname, email, gender, signedUpUsing, dob, mobile, aadhar, location, uid, imgURL, fblink;
     public int fb, gg, em;
+    public boolean phoneVisible;
 
     public User_object() {
         fb = 0;
@@ -25,6 +26,7 @@ public class User_object {
         location = "State";
         signedUpUsing = "E";
         fblink = null;
+        phoneVisible = true;
     }
 
     public User_object(String uid1, String fname1, String lname1, String email1, String gender1, String dob1, String mobile1, String aadhar1, String location1, String imgUR, String signUpMethod, String fbl) {
@@ -69,6 +71,7 @@ public class User_object {
             fb = 1;
             fblink = obj.fblink;
         }
+        phoneVisible = obj.phoneVisible;
     }
     @Override
     public String toString() {

@@ -186,29 +186,17 @@
                         android:textColor="@color/cardview_dark_background"
                         android:textSize="18sp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <com.nexturn.ModifiedViews.ourTextView
+                        android:id="@+id/dobenter"
+                        android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:layout_weight="1">
-
-                        <com.nexturn.ModifiedViews.ourTextView
-                            android:id="@+id/dobenter"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:ems="10"
-                            android:gravity="center_vertical|center_horizontal"
-                            android:inputType="date"
-                            android:text="DD/MM/YYYY"
-                            android:textSize="18sp" />
-
-                        <ImageView
-                            android:id="@+id/imageView"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:onClick="setState_list"
-                            app:srcCompat="@android:drawable/ic_menu_my_calendar" />
-                    </LinearLayout>
+                        android:layout_weight="1"
+                        android:ems="10"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:inputType="date"
+                        android:onClick="setState_list"
+                        android:text="Click Me"
+                        android:textSize="18sp" />
 
                 </TableRow>
 

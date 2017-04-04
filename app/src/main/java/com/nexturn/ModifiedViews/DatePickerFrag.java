@@ -50,8 +50,14 @@ public class DatePickerFrag extends DialogFragment implements DatePickerDialog.O
                 Profile_Fragment.dob_edit.setText(d + "/" + m + "/" + y);
             }
         } else if (year == c.get(Calendar.YEAR)) {
-            if (month <= (c.get(Calendar.MONTH) + 1)) {
-                if (day < c.get(Calendar.DAY_OF_MONTH)) {
+            if (month < (c.get(Calendar.MONTH) + 1)) {
+                if (registered) {
+                    Registration.dob.setText(d + "/" + m + "/" + y);
+                } else {
+                    Profile_Fragment.dob_edit.setText(d + "/" + m + "/" + y);
+                }
+            } else if (month == (c.get(Calendar.MONTH) + 1)) {
+                if (day <= c.get(Calendar.DAY_OF_MONTH)) {
                     if (registered) {
                         Registration.dob.setText(d + "/" + m + "/" + y);
                     } else {

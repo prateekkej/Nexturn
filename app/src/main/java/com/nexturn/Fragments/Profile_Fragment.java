@@ -25,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
@@ -76,6 +77,7 @@ public class Profile_Fragment extends Fragment {
     ourTextView name, email, gender, mobile, dob, aadhar, loc;
     boolean isEditingOn = false;
     View v;
+    Switch phoneVisibilty;
     private Button reset, delete, edit;
     private EditText phone_edit, fname_edit, lname_edit;
     private Spinner gender_edit, location_edit;
@@ -134,7 +136,18 @@ public class Profile_Fragment extends Fragment {
                 });
             }
         });
-
+        phoneVisibilty.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean vsible;
+                if (phoneVisibilty.isChecked()) {
+                    vsible = true;
+                } else {
+                    vsible = false;
+                }
+                databaseReference.child(HomeActivity.currentUser.getUid()).child("phoneVisible").setValue(vsible);
+            }
+        });
         edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -343,6 +356,12 @@ public class Profile_Fragment extends Fragment {
     }
     void initialize_views(LayoutInflater inflater) {
         v = inflater.inflate(R.layout.profile_frag, null);
+        phoneVisibilty = (Switch) v.findViewById(R.id.phonevisibilty);
+        if (HomeActivity.user_obj.phoneVisible) {
+            phoneVisibilty.setChecked(true);
+        } else {
+            phoneVisibilty.setChecked(false);
+        }
         name = (ourTextView) v.findViewById(R.id.name_profile);
         fname_edit = (EditText) v.findViewById(R.id.fname_edit);
         lname_edit = (EditText) v.findViewById(R.id.lname_edit);

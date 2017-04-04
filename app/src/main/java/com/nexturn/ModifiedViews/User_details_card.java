@@ -3,6 +3,7 @@ package com.nexturn.ModifiedViews;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,10 +35,11 @@ import com.nexturn.User_location;
 
 public class User_details_card extends AppCompatDialogFragment {
     public View mainDialog, proposalDialog;
+    Proposal prop;
     private Button cancel_proposal, send_proposal;
     private EditText proposal;
     private ourTextView name, phone, goingTo;
-    private ImageView fblink, call, message, user_image, close;
+    private ImageView fblink, call, message, user_image, close, gg, fb, em;
     private User_location user;
     private Intent im;
     private AlertDialog proposalInput;
@@ -58,12 +60,36 @@ public class User_details_card extends AppCompatDialogFragment {
         proposalDialog = inflater.inflate(R.layout.send_proposal_layout, null, false);
         intialize_views();
         namestr = user.name;
-        phonestr = user.phone;
         goingTostr = user.goingTo;
         fblinkstr = user.fblink;
         name.setText(namestr);
-        phone.setText(phonestr);
+        prop = new Proposal();
         goingTo.setText(goingTostr);
+        final boolean phoneVisibility = user.phoneVisible;
+        if (phoneVisibility) {
+            phonestr = user.phone;
+            phone.setText(phonestr);
+            prop.senderPhone = phonestr;
+        } else {
+            phone.setText("HIDDEN");
+        }
+
+        if (user.fb == 1) {
+            fb.setColorFilter(getResources().getColor(R.color.colorBackground));
+            prop.senderFB = user.fblink;
+        } else {
+            fb.setColorFilter(Color.BLACK);
+        }
+        if (user.gg == 1) {
+        } else {
+            gg.setColorFilter(Color.BLACK);
+        }
+        if (user.em == 1) {
+            em.setColorFilter(getResources().getColor(R.color.colorBackground));
+        } else {
+            em.setColorFilter(Color.BLACK);
+        }
+
         getDialog().setTitle("User Details");
         if (user.imgURL != null || !user.imgURL.equals("")) {
             try {
@@ -101,13 +127,13 @@ public class User_details_card extends AppCompatDialogFragment {
             call.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (!phonestr.isEmpty()) {
+                    if (phonestr != null) {
                     im = new Intent(Intent.ACTION_DIAL);
                     Uri call = Uri.parse("tel:" + phonestr);
                     im.setData(call);
                     startActivity(im);
                     } else {
-                        new AlertDialog.Builder(getActivity()).setMessage("The person has not yet registered/verified his/her Phone Number").setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        new AlertDialog.Builder(getActivity()).setMessage("The person has not yet registered/publicized his Phone Number").setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
                                 dialogInterface.dismiss();
@@ -120,36 +146,40 @@ public class User_details_card extends AppCompatDialogFragment {
         message.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                  /*  if (!phonestr.isEmpty()) {
+                    if (phonestr != null && phoneVisibility) {
                         Uri uri = Uri.parse("smsto:" + phonestr);
                     im = new Intent(Intent.ACTION_SENDTO);
                     im.setData(uri);
                     im.putExtra("sms_body", "Hey!!\n Write your lift proposal here..  \n\n\n" + "I am at: " + user.getLatLng().toString());
                         startActivity(im);
                     } else {
+                        proposalInput.show();
+                        send_proposal.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                prop.recieverUid = user.getUid();
+                                prop.senderIMG = HomeActivity.user_location.imgURL;
+                                prop.senderDest = HomeActivity.goingto;
+                                prop.senderUid = HomeActivity.currentUser.getUid();
+                                prop.proposalText = proposal.getText().toString().trim();
+                                prop.senderName = HomeActivity.user_obj.fname + " " + HomeActivity.user_obj.lname;
+                                prop.recieverName = user.name;
+                                prop.recieverImage = user.imgURL;
+                                sendProposal();
+                                proposalInput.dismiss();
+                                User_details_card.this.dismiss();
 
-                    }*/
-                    proposalInput.show();
-
-                    send_proposal.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Proposal prop = new Proposal();
-                            prop.recieverUid = user.getUid();
-                            prop.senderUid = HomeActivity.currentUser.getUid();
-                            prop.proposalText = proposal.getText().toString().trim();
-                            proposalInput.dismiss();
-                        }
-                    });
-                    cancel_proposal.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            proposalInput.dismiss();
-                        }
-                    });
+                            }
+                        });
+                        cancel_proposal.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                proposalInput.dismiss();
+                            }
+                        });
+                    }
                 }
-            });
-
+        });
 
         close.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,6 +194,9 @@ public class User_details_card extends AppCompatDialogFragment {
 
     void intialize_views() {
         name = (ourTextView) mainDialog.findViewById(R.id.card_name);
+        gg = (ImageView) mainDialog.findViewById(R.id.ggid);
+        fb = (ImageView) mainDialog.findViewById(R.id.fbid);
+        em = (ImageView) mainDialog.findViewById(R.id.emid);
         cancel_proposal = (Button) proposalDialog.findViewById(R.id.cancel_proposal_editing);
         send_proposal = (Button) proposalDialog.findViewById(R.id.sendProposal);
         proposal = (EditText) proposalDialog.findViewById(R.id.proposal);
@@ -177,14 +210,11 @@ public class User_details_card extends AppCompatDialogFragment {
 
     }
 
-    class Proposal {
-
-        public String proposalText, senderUid, recieverUid;
-
-        Proposal() {
-            proposalText = "";
-            senderUid = "";
-            recieverUid = "";
-        }
+    void sendProposal() {
+        String key1 = HomeActivity.messagesReference.child(HomeActivity.currentUser.getUid()).child("sent").push().getKey();
+        prop.key = key1;
+        HomeActivity.messagesReference.child(HomeActivity.currentUser.getUid()).child("sent").child(key1).setValue(prop);
+        HomeActivity.messagesReference.child(user.getUid()).child("recieved").child(key1).setValue(prop);
     }
+
 }

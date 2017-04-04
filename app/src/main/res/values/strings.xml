@@ -167,7 +167,7 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="google_maps_key">AIzaSyCO012JPUEhWQZwWhm7pP8rEVbxvWtAZkk</string>
+    <string name="google_maps_key">AIzaSyBhbwCQRYIGwwkaaA5p1Ap8hgWCjNl56zY</string>
     <string name="aboutName">Nexturn 1.0</string>
     <string name="aboutContent">Nexturn is a lift hailing app designed specifically for people stranded on roadside looking for help. </string>
 </resources>

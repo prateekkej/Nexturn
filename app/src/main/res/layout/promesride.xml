@@ -12,8 +12,7 @@
         android:animateLayoutChanges="true"
         android:background="@drawable/side_nav_bar"
         android:fadingEdge="horizontal"
-        app:tabGravity="center"
-        app:tabTextColor="@color/cardview_light_background">
+        app:tabTextColor="@android:color/white">
 
     </android.support.design.widget.TabLayout>
 

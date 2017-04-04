@@ -1,45 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/card"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    app:cardElevation="2dp">
-
+    android:orientation="vertical">
 
     <LinearLayout
-        android:layout_width="300dp"
-        android:layout_height="350dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical|center_horizontal"
         android:orientation="vertical">
-
-        <ImageView
-            android:id="@+id/card_close"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="false"
-            android:layout_alignParentTop="false"
-            android:layout_gravity="right"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="5dp"
-            android:clickable="true"
-            app:srcCompat="@android:drawable/ic_menu_close_clear_cancel" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
             <ImageView
-                android:id="@+id/card_image"
+                android:id="@+id/userImage_proposal_large"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_above="@+id/card_name"
                 android:layout_centerHorizontal="false"
-                android:layout_gravity="left"
-                android:layout_marginLeft="15dp"
+                android:layout_margin="10dp"
+                android:layout_marginTop="10dp"
                 android:layout_weight="0"
                 android:scaleType="fitCenter"
                 app:srcCompat="@drawable/ic_person_outline_black_24dp" />
@@ -52,7 +37,7 @@
                 android:orientation="vertical">
 
                 <view
-                    android:id="@+id/card_name"
+                    android:id="@+id/proposer_name"
                     class="com.nexturn.ModifiedViews.ourTextView"
                     id="@+id/view4"
                     android:layout_width="wrap_content"
@@ -65,10 +50,11 @@
                     android:layout_marginTop="10dp"
                     android:layout_weight="1"
                     android:text="Full Name"
-                    android:textSize="18sp" />
+                    android:textColor="@android:color/black"
+                    android:textSize="22sp" />
 
                 <view
-                    android:id="@+id/card_phone"
+                    android:id="@+id/proposer_phone"
                     class="com.nexturn.ModifiedViews.ourTextView"
                     id="@+id/view5"
                     android:layout_width="wrap_content"
@@ -103,7 +89,7 @@
                         android:textSize="18sp" />
 
                     <view
-                        android:id="@+id/card_destination"
+                        android:id="@+id/proposer_destination"
                         class="com.nexturn.ModifiedViews.ourTextView"
                         id="@+id/view15"
                         android:layout_width="wrap_content"
@@ -120,66 +106,18 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentBottom="false"
-            android:layout_centerHorizontal="false"
-            android:layout_gravity="center_horizontal"
-
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/card_fb"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:tint="@android:color/black"
-                app:srcCompat="@drawable/fb" />
-
-            <ImageView
-                android:id="@+id/card_sms"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:padding="10dp"
-                android:tint="@color/colorBackground"
-                app:srcCompat="@drawable/ic_sms_black_24dp" />
-
-            <ImageView
-                android:id="@+id/card_call"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_weight="1"
-                android:padding="10dp"
-                android:tint="@android:color/black"
-                app:srcCompat="@drawable/ic_call_black_24dp" />
-        </LinearLayout>
-
-        <view
-
-            class="com.nexturn.ModifiedViews.ourTextView"
-            id="@+id/view4"
-            layout_width="match_parent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:text="Identity providers"
-            android:textColor="@android:color/black"
-            android:textSize="18sp" />
-
-        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
             android:layout_marginTop="20dp"
+            android:gravity="center_horizontal"
             android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/fbid"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 app:srcCompat="@drawable/fb" />
 
@@ -187,6 +125,7 @@
                 android:id="@+id/emid"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 app:srcCompat="@drawable/ic_email_black_24dp" />
 
@@ -194,10 +133,67 @@
                 android:id="@+id/ggid"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:layout_gravity="center_horizontal"
                 android:layout_weight="1"
                 app:srcCompat="@drawable/googleg_standard_color_18" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <view
+                class="com.nexturn.ModifiedViews.ourTextView"
+                id="@+id/view4"
+                layout_width="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:text="Proposal-"
+                android:textSize="24sp" />
+
+            <view
+                android:id="@+id/protext"
+                class="com.nexturn.ModifiedViews.ourTextView"
+                id="@+id/view5"
+                layout_width="match_parent"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_margin="20dp"
+                android:layout_marginBottom="10dp"
+                android:text="PRRRRRRRRRRRROOOOOOOOOOOPPPPPPo"
+                android:textSize="18sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/acceptProposal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
+                    android:text="Accept" />
+
+                <Button
+                    android:id="@+id/rejectProposal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="?attr/selectableItemBackground"
+                    android:text="Delete/Reject" />
+            </LinearLayout>
+        </LinearLayout>
+
+
     </LinearLayout>
+
 
 </android.support.v7.widget.CardView>

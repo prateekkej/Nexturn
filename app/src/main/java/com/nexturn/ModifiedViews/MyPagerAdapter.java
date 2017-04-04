@@ -5,9 +5,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.nexturn.Fragments.HailRequests;
-import com.nexturn.Fragments.MyRides;
+import com.nexturn.Fragments.HailRequestsSent;
 import com.nexturn.Fragments.Profile_Fragment;
-import com.nexturn.Fragments.SettingsPage;
 
 /**
  * Created by Prateek on 01-04-2017.
@@ -26,7 +25,7 @@ public class MyPagerAdapter extends FragmentPagerAdapter {
             case 1:
                 return new HailRequests();
             case 2:
-                return new MyRides();
+                return new HailRequestsSent();
         }
         return null;
     }
@@ -37,9 +36,9 @@ public class MyPagerAdapter extends FragmentPagerAdapter {
             case 0:
                 return "Profile";
             case 1:
-                return "Hail Requests";
+                return "Received Requests";
             case 2:
-                return "My Rides";
+                return "Sent Requests";
         }
         return null;
     }
